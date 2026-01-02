@@ -1,0 +1,107 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - navigation "Skip links":
+      - link "Skip to main content" [ref=e4] [cursor=pointer]:
+        - /url: "#main-content"
+      - link "Skip to navigation" [ref=e5] [cursor=pointer]:
+        - /url: "#main-navigation"
+      - link "Skip to footer" [ref=e6] [cursor=pointer]:
+        - /url: "#footer"
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - link "Zenith Bioscience home page" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img "Zenith Bioscience Logo" [ref=e12]
+          - generic [ref=e13]:
+            - heading "Zenith" [level=5] [ref=e14]
+            - heading "Bioscience" [level=6] [ref=e15]
+        - navigation "Main navigation" [ref=e16]:
+          - link "Navigate to home page" [ref=e17] [cursor=pointer]:
+            - /url: /
+            - text: Home
+          - link "Navigate to shop page" [ref=e18] [cursor=pointer]:
+            - /url: /shop
+            - text: Shop
+          - link "Navigate to FAQ page" [ref=e19] [cursor=pointer]:
+            - /url: /faq
+            - text: FAQ
+          - generic "User account and cart actions" [ref=e20]:
+            - link "Go to account dashboard" [ref=e21] [cursor=pointer]:
+              - /url: /account
+              - img [ref=e22]
+            - button "Open shopping cart with 0 items" [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e26]
+                - generic [ref=e28]: "0"
+    - main "Main content" [ref=e29]:
+      - generic [ref=e30]:
+        - navigation "breadcrumb" [ref=e32]:
+          - list [ref=e33]:
+            - listitem [ref=e34]:
+              - link "Navigate to home page" [ref=e35] [cursor=pointer]:
+                - /url: /
+                - img [ref=e36]
+                - text: Home
+            - listitem [ref=e38]: ›
+            - listitem [ref=e39]:
+              - link "Navigate to My Account" [ref=e40] [cursor=pointer]:
+                - /url: /account
+                - text: My Account
+            - listitem [ref=e41]: ›
+            - listitem [ref=e42]:
+              - paragraph [ref=e43]: Activate
+        - generic [ref=e45]:
+          - navigation "Skip links":
+            - link "Skip to main content" [ref=e46] [cursor=pointer]:
+              - /url: "#main-content"
+            - link "Skip to account navigation" [ref=e47] [cursor=pointer]:
+              - /url: "#account-navigation"
+            - link "Skip to footer" [ref=e48] [cursor=pointer]:
+              - /url: "#footer"
+          - generic [ref=e52]:
+            - alert [ref=e53]:
+              - img [ref=e55]
+              - generic [ref=e57]: Invalid activation link. Please check your email for the correct activation link.
+            - link "Resend Activation Email" [ref=e59] [cursor=pointer]:
+              - /url: /account/resend-activation
+              - button "Resend Activation Email" [ref=e60]
+    - contentinfo [ref=e61]:
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - img "Zenith Bioscience Logo" [ref=e65]
+          - generic [ref=e67]:
+            - heading "Contact Us" [level=2] [ref=e68]
+            - link "Contact us" [ref=e69] [cursor=pointer]:
+              - /url: /contact
+              - heading "Get In Touch" [level=6] [ref=e70]
+        - generic [ref=e71]:
+          - heading "© 2025 Zenith Bioscience. All rights reserved." [level=6] [ref=e73]
+          - navigation "Legal and policy links" [ref=e74]:
+            - link "View terms and conditions" [ref=e75] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+              - text: Terms & Conditions
+            - link "View privacy policy" [ref=e76] [cursor=pointer]:
+              - /url: /legal/privacy-policy
+              - text: Privacy Policy
+            - link "View cookie policy" [ref=e77] [cursor=pointer]:
+              - /url: /cookie-policy
+              - text: Cookie Policy
+            - link "View return policy" [ref=e78] [cursor=pointer]:
+              - /url: /legal/return-policy
+              - text: Return Policy
+            - link "View shipping policy" [ref=e79] [cursor=pointer]:
+              - /url: /legal/shipping
+              - text: Shipping Policy
+            - link "View research use disclaimer" [ref=e80] [cursor=pointer]:
+              - /url: /legal/research
+              - text: Research Use Disclaimer
+            - link "Contact legal department" [ref=e81] [cursor=pointer]:
+              - /url: /legal/contact
+              - text: Legal Contact
+    - status [ref=e82]
+    - status [ref=e83]
+```

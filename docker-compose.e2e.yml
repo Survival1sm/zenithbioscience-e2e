@@ -1,0 +1,115 @@
+services:
+  mongodb:
+    image: mongo:7.0
+    ports:
+      - "${MONGO_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_DATABASE: zenith_e2e
+    volumes:
+      - mongodb_data:/data/db
+    healthcheck:
+      test: mongosh --eval 'db.runCommand("ping").ok'
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ../zenithbioscience-api
+      dockerfile: Dockerfile.e2e
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: e2e
+      SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/zenith_e2e
+      MONGODB_URL: mongodb://mongodb:27017/zenith_e2e
+      # JWT Secret
+      JHIPSTER_SECURITY_AUTHENTICATION_JWT_BASE64_SECRET: ${JHIPSTER_JWT_BASE64_SECRET:-YTJkZTRmMjgtNjU3Ni00YzM5LTg5YzgtMjE0ZjM2NzY1YzRlZTJlMjQ2ZjgtNjU3Ni00YzM5LTg5YzgtMjE0ZjM2NzY1YzRl}
+      JWT_SECRET: ${JWT_SECRET:-Gqtr0FDHUhbrBjgKOgGrXdFFwZL1W7Mg5p7sSBn2vN4PBR0KDvtBrmbSZXFhXXqK}
+      # Payment Tokenization (from .env)
+      PAYMENT_TOKENIZATION_ENCRYPTION_KEY: ${PAYMENT_TOKENIZATION_ENCRYPTION_KEY}
+      PAYMENT_TOKENIZATION_SALT: ${PAYMENT_TOKENIZATION_SALT}
+      PAYMENT_TOKENIZATION_HMAC_KEY: ${PAYMENT_TOKENIZATION_HMAC_KEY}
+      # App Security Tokenization
+      APP_SECURITY_ENCRYPTION_KEY: ${APP_SECURITY_ENCRYPTION_KEY}
+      APP_SECURITY_TOKENIZATION_SALT: ${APP_SECURITY_TOKENIZATION_SALT}
+      APP_SECURITY_TOKENIZATION_HMAC_KEY: ${APP_SECURITY_TOKENIZATION_HMAC_KEY}
+      # AWS Configuration (mock for E2E)
+      AWS_REGION: us-west-2
+      AWS_S3_BUCKET: e2e-test-bucket
+      AWS_S3_ACCESS_KEY: e2e-test-access-key
+      AWS_S3_SECRET_KEY: e2e-test-secret-key
+      AWS_SNS_ENABLED: "false"
+      AWS_SNS_ACCESS_KEY: e2e-test-sns-access
+      AWS_SNS_SECRET_KEY: e2e-test-sns-secret
+      # Google OAuth (from .env)
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      # MailerSend (disabled for E2E)
+      MAILERSEND_ENABLED: "false"
+      MAILERSEND_API_KEY: e2e-test-mailersend-key
+      # Solana Pay Configuration (DEVNET for E2E testing)
+      SOLANA_PAY_ENABLED: "true"
+      SOLANA_PAY_NETWORK: devnet
+      SOLANA_PAY_RPC_ENDPOINT: https://api.devnet.solana.com
+      SOLANA_RECIPIENT_ADDRESS: FUBMJTobajcFZcKj5QmvHjCRyFdbRCfyuDUkKmRzaY9d
+      SOLANA_USDC_MINT: Gh9ZwEmdLJ8DscKNTkTqPbNwLNNBjuSzaG9Vp2KGtKJr
+      SOLANA_PAY_CRYPTO_DISCOUNT_PERCENTAGE: "10.0"
+      SOLANA_TRANSACTION_REQUEST_BASE_URL: http://backend:8080
+      # CashApp Configuration
+      PAYMENT_CASHAPP_ENABLED: "true"
+      PAYMENT_CASHAPP_BUSINESS_HANDLE: "$$ZenithBio"
+      # Bitcoin Configuration (testnet for E2E testing)
+      BTC_PAY_ENABLED: "true"
+      BTC_NETWORK: testnet
+      BTC_XPUB: vpub5Y6cjg78GGuNLsaPhmYsiw4gYX3HoQiRBiSwDaBXKUafCt9bNwWQiitDk5VZ5BVxYnQdwoTyXSs2JHRPAgjAvtbBrf8ZhDYe2jWAqvZVnsc
+      # EasyPost Configuration (from .env)
+      EASYPOST_ENABLED: "true"
+      EASYPOST_API_KEY: ${EASYPOST_API_KEY}
+      EASYPOST_TEST_MODE: "true"
+      EASYPOST_WEBHOOK_SECRET: ${EASYPOST_WEBHOOK_SECRET}
+      EASYPOST_SHIP_FROM_COMPANY: Zenith Bioscience
+      EASYPOST_SHIP_FROM_STREET1: 2131 South Idalia Street
+      EASYPOST_SHIP_FROM_CITY: Aurora
+      EASYPOST_SHIP_FROM_STATE: CO
+      EASYPOST_SHIP_FROM_ZIP: "80013"
+      EASYPOST_SHIP_FROM_PHONE: "+17208810986"
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    healthcheck:
+      test: curl -f http://localhost:8080/management/health || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build:
+      context: ../zenithbioscience-next
+      dockerfile: Dockerfile.e2e
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      # Backend API Configuration
+      NEXT_SERVER_API_BASE_URL: http://backend:8080
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8080
+      NODE_ENV: test
+      # Store Configuration
+      NEXT_PUBLIC_STORE_LIVE: "true"
+      # Solana Pay Configuration (DEVNET for E2E testing)
+      NEXT_PUBLIC_SOLANA_NETWORK: devnet
+      NEXT_PUBLIC_SOLANA_RPC_URL: https://api.devnet.solana.com
+      NEXT_PUBLIC_CRYPTO_DISCOUNT_PERCENTAGE: "10"
+      # Payment Method Feature Flags
+      NEXT_PUBLIC_ENABLE_SOLANA_PAY: "true"
+      NEXT_PUBLIC_ENABLE_CASHAPP: "true"
+      NEXT_PUBLIC_ENABLE_BITCOIN: "true"
+      NEXT_PUBLIC_ENABLE_ZELLE: "false"
+      NEXT_PUBLIC_ENABLE_ACH: "false"
+      NEXT_PUBLIC_ENABLE_CREDIT_CARD: "false"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  mongodb_data:

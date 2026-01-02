@@ -1,0 +1,2 @@
+# Test fixtures and data seeding utilities will be placed in this directory
+# Includes: types.ts, defaultFixtures.ts, DataSeeder.ts

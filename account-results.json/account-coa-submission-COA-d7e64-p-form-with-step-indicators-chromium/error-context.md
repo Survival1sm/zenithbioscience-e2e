@@ -1,0 +1,213 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - link [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+      - text: Skip to main content
+    - link [ref=e5] [cursor=pointer]:
+      - /url: "#main-navigation"
+      - text: Skip to navigation
+    - link [ref=e6] [cursor=pointer]:
+      - /url: "#footer"
+      - text: Skip to footer
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - link [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - generic [ref=e13]:
+            - heading [level=5] [ref=e14]: Zenith
+            - heading [level=6] [ref=e15]: Bioscience
+        - navigation [ref=e16]:
+          - link [ref=e17] [cursor=pointer]:
+            - /url: /
+            - text: Home
+          - link [ref=e18] [cursor=pointer]:
+            - /url: /shop
+            - text: Shop
+          - link [ref=e19] [cursor=pointer]:
+            - /url: /faq
+            - text: FAQ
+          - generic [ref=e20]:
+            - link [ref=e21] [cursor=pointer]:
+              - /url: /account
+              - img [ref=e22]
+            - button [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e26]
+                - generic [ref=e28]: "0"
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - navigation [ref=e32]:
+          - list [ref=e33]:
+            - listitem [ref=e34]:
+              - link [ref=e35] [cursor=pointer]:
+                - /url: /
+                - img [ref=e36]
+                - text: Home
+            - listitem [ref=e38]: ›
+            - listitem [ref=e39]:
+              - link [ref=e40] [cursor=pointer]:
+                - /url: /account
+                - text: My Account
+            - listitem [ref=e41]: ›
+            - listitem [ref=e42]:
+              - paragraph [ref=e43]: COA Submissions
+        - generic [ref=e45]:
+          - link [ref=e46] [cursor=pointer]:
+            - /url: "#main-content"
+            - text: Skip to main content
+          - link [ref=e47] [cursor=pointer]:
+            - /url: "#account-navigation"
+            - text: Skip to account navigation
+          - link [ref=e48] [cursor=pointer]:
+            - /url: "#footer"
+            - text: Skip to footer
+          - generic [ref=e49]:
+            - navigation [ref=e53]:
+              - link [ref=e54] [cursor=pointer]:
+                - /url: /account
+                - img [ref=e56]
+                - generic [ref=e59]: Dashboard
+              - link [ref=e60] [cursor=pointer]:
+                - /url: /account/orders
+                - img [ref=e62]
+                - generic [ref=e65]: Orders
+              - link [ref=e66] [cursor=pointer]:
+                - /url: /account/coa
+                - img [ref=e68]
+                - generic [ref=e71]: COA Submissions
+              - link [ref=e72] [cursor=pointer]:
+                - /url: /account/credits
+                - img [ref=e74]
+                - generic [ref=e77]: Account Credits
+              - link [ref=e78] [cursor=pointer]:
+                - /url: /account/profile
+                - img [ref=e80]
+                - generic [ref=e83]: Profile
+              - link [ref=e84] [cursor=pointer]:
+                - /url: /account/addresses
+                - img [ref=e86]
+                - generic [ref=e89]: Addresses
+              - link [ref=e90] [cursor=pointer]:
+                - /url: /account/password
+                - img [ref=e92]
+                - generic [ref=e95]: Change Password
+              - link [ref=e96] [cursor=pointer]:
+                - /url: /account/gdpr
+                - img [ref=e98]
+                - generic [ref=e101]: Privacy & Data
+              - separator [ref=e102]
+              - button [ref=e103] [cursor=pointer]:
+                - img [ref=e105]
+                - generic [ref=e108]: Logout
+            - generic [ref=e110]:
+              - heading [level=1] [ref=e111]: Certificate of Analysis Submissions
+              - paragraph [ref=e112]: Submit COAs for your completed orders to earn account credits and help validate product quality.
+              - generic [ref=e113]:
+                - tablist [ref=e117]:
+                  - tab [selected] [ref=e118] [cursor=pointer]: Submit COA
+                  - tab [ref=e119] [cursor=pointer]: My Submissions
+                - tabpanel [ref=e121]:
+                  - generic [ref=e123]:
+                    - generic [ref=e124]:
+                      - generic [ref=e126]:
+                        - img [ref=e128]:
+                          - generic [ref=e130]: "1"
+                        - generic [ref=e132]: Select Order
+                      - generic [ref=e136]:
+                        - img [ref=e138]:
+                          - generic [ref=e140]: "2"
+                        - generic [ref=e142]: Choose Batch
+                      - generic [ref=e146]:
+                        - img [ref=e148]:
+                          - generic [ref=e150]: "3"
+                        - generic [ref=e152]: COA Details
+                      - generic [ref=e156]:
+                        - img [ref=e158]:
+                          - generic [ref=e160]: "4"
+                        - generic [ref=e162]: Review & Submit
+                    - generic [ref=e164]:
+                      - heading [level=6] [ref=e165]: Select an Order
+                      - paragraph [ref=e166]: Choose a completed order to submit a COA for. Only orders that are completed or delivered are eligible.
+                      - alert [ref=e167]:
+                        - img [ref=e169]
+                        - generic [ref=e171]: You don't have any completed orders eligible for COA submission yet.
+                    - generic [ref=e172]:
+                      - button [disabled]: Back
+                      - button [disabled]: Next
+    - contentinfo [ref=e174]:
+      - generic [ref=e175]:
+        - generic [ref=e176]:
+          - img [ref=e178]
+          - generic [ref=e180]:
+            - heading [level=2] [ref=e181]: Contact Us
+            - link [ref=e182] [cursor=pointer]:
+              - /url: /contact
+              - heading [level=6] [ref=e183]: Get In Touch
+        - generic [ref=e184]:
+          - heading [level=6] [ref=e186]: © 2025 Zenith Bioscience. All rights reserved.
+          - navigation [ref=e187]:
+            - link [ref=e188] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+              - text: Terms & Conditions
+            - link [ref=e189] [cursor=pointer]:
+              - /url: /legal/privacy-policy
+              - text: Privacy Policy
+            - link [ref=e190] [cursor=pointer]:
+              - /url: /cookie-policy
+              - text: Cookie Policy
+            - link [ref=e191] [cursor=pointer]:
+              - /url: /legal/return-policy
+              - text: Return Policy
+            - link [ref=e192] [cursor=pointer]:
+              - /url: /legal/shipping
+              - text: Shipping Policy
+            - link [ref=e193] [cursor=pointer]:
+              - /url: /legal/research
+              - text: Research Use Disclaimer
+            - link [ref=e194] [cursor=pointer]:
+              - /url: /legal/contact
+              - text: Legal Contact
+    - status [ref=e195]
+    - status [ref=e196]
+  - dialog "COA Submission Guide Skip" [ref=e199]:
+    - heading "COA Submission Guide Skip" [level=2] [ref=e200]:
+      - text: COA Submission Guide
+      - button "Skip" [ref=e201] [cursor=pointer]:
+        - img [ref=e203]
+        - text: Skip
+    - generic [ref=e206]:
+      - generic [ref=e207]:
+        - generic [ref=e208]:
+          - img [ref=e210]
+          - generic [ref=e213]: Welcome to COA Submissions
+        - generic [ref=e217]:
+          - generic [ref=e219]:
+            - paragraph [ref=e220]: Welcome! You can now submit your Certificate of Analysis (COA) images directly through our platform.
+            - alert [ref=e221]:
+              - img [ref=e223]
+              - paragraph [ref=e226]: This new process replaces the old URL-based system and provides better security and reliability.
+            - paragraph [ref=e227]: Let's walk through the simple upload process step by step.
+          - button "Continue" [ref=e229] [cursor=pointer]:
+            - img [ref=e231]
+            - text: Continue
+      - generic [ref=e236]:
+        - img [ref=e238]
+        - generic [ref=e241]: File Requirements
+      - generic [ref=e245]:
+        - img [ref=e247]
+        - generic [ref=e250]: Upload Process
+      - generic [ref=e254]:
+        - img [ref=e256]
+        - generic [ref=e259]: Review Process
+      - generic [ref=e263]:
+        - img [ref=e265]
+        - generic [ref=e268]: Ready to Start
+    - generic [ref=e269]:
+      - generic [ref=e270]: Step 1 of 5
+      - button "Close" [ref=e271] [cursor=pointer]
+```

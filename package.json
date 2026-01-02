@@ -1,0 +1,43 @@
+{
+  "name": "zenithbioscience-e2e",
+  "version": "1.0.0",
+  "description": "E2E integration tests for Zenith Bioscience platform",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:mobile": "playwright test --project=mobile-chrome",
+    "test:mobile-chrome": "playwright test --project=mobile-chrome",
+    "test:desktop": "playwright test --project=chromium --project=firefox",
+    "test:all-browsers": "playwright test",
+    "test:ci": "playwright test --project=chromium --project=firefox --project=mobile-chrome",
+    "browsers:install": "playwright install chromium firefox",
+    "report": "playwright show-report",
+    "seed": "ts-node fixtures/DataSeeder.ts",
+    "typecheck": "tsc --noEmit",
+    "e2e:seed": "ts-node scripts/seed-database.ts",
+    "e2e:report": "playwright show-report reports/html",
+    "e2e:clean": "node -e \"const fs=require('fs');const path=require('path');['reports','test-results','playwright-report'].forEach(d=>{const p=path.join(process.cwd(),d);if(fs.existsSync(p))fs.rmSync(p,{recursive:true,force:true})});console.log('Cleaned test results and reports')\"",
+    "e2e:docker:up": "docker compose -f docker-compose.e2e.yml up -d",
+    "e2e:docker:down": "docker compose -f docker-compose.e2e.yml down -v",
+    "e2e:docker:logs": "docker compose -f docker-compose.e2e.yml logs -f",
+    "e2e:full": "npm run test && npm run e2e:report"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "mongodb": "^6.8.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^22.7.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

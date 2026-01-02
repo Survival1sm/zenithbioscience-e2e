@@ -1,0 +1,3 @@
+# Page Object Model classes will be placed in this directory
+# Includes: BasePage.ts, LoginPage.ts, ShopPage.ts, CartPage.ts, etc.
+# Subdirectories: components/, admin/

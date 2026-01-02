@@ -1,0 +1,147 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - navigation "Skip links":
+      - link "Skip to main content" [ref=e4] [cursor=pointer]:
+        - /url: "#main-content"
+      - link "Skip to navigation" [ref=e5] [cursor=pointer]:
+        - /url: "#main-navigation"
+      - link "Skip to footer" [ref=e6] [cursor=pointer]:
+        - /url: "#footer"
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - link "Zenith Bioscience home page" [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img "Zenith Bioscience Logo" [ref=e12]
+          - generic [ref=e13]:
+            - heading "Zenith" [level=5] [ref=e14]
+            - heading "Bioscience" [level=6] [ref=e15]
+        - navigation "Main navigation" [ref=e16]:
+          - link "Navigate to home page" [ref=e17] [cursor=pointer]:
+            - /url: /
+            - text: Home
+          - link "Navigate to shop page" [ref=e18] [cursor=pointer]:
+            - /url: /shop
+            - text: Shop
+          - link "Navigate to FAQ page" [ref=e19] [cursor=pointer]:
+            - /url: /faq
+            - text: FAQ
+          - generic "User account and cart actions" [ref=e20]:
+            - link "Go to account dashboard" [ref=e21] [cursor=pointer]:
+              - /url: /account
+              - img [ref=e22]
+            - button "Open shopping cart with 0 items" [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e26]
+                - generic [ref=e28]: "0"
+    - main "Main content" [ref=e29]:
+      - generic [ref=e30]:
+        - navigation "breadcrumb" [ref=e32]:
+          - list [ref=e33]:
+            - listitem [ref=e34]:
+              - link "Navigate to home page" [ref=e35] [cursor=pointer]:
+                - /url: /
+                - img [ref=e36]
+                - text: Home
+            - listitem [ref=e38]: ›
+            - listitem [ref=e39]:
+              - link "Navigate to Auth" [ref=e40] [cursor=pointer]:
+                - /url: /auth
+                - text: Auth
+            - listitem [ref=e41]: ›
+            - listitem [ref=e42]:
+              - paragraph [ref=e43]: Login
+        - form "Log In to Your Account" [ref=e45]:
+          - heading "Log In to Your Account" [level=1] [ref=e46]
+          - form "Log In to Your Account" [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]:
+                - text: Email Address
+                - generic [ref=e50]: "*"
+              - generic [ref=e51]:
+                - textbox "Email address for login" [ref=e52]: account-credits@test.zenithbioscience.com
+                - group:
+                  - generic: Email Address *
+            - paragraph [ref=e53]: Enter the email address associated with your account
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - text: Password
+                - generic [ref=e56]: "*"
+              - generic [ref=e57]:
+                - textbox "Password for login" [ref=e58]: TestPassword123!
+                - generic [ref=e59]:
+                  - button "Show password" [ref=e60] [cursor=pointer]:
+                    - img [ref=e61]
+                  - generic [ref=e63]: Password is currently hidden
+                - group:
+                  - generic: Password *
+            - paragraph [ref=e64]: Enter your account password
+            - generic [ref=e65]:
+              - generic [ref=e66] [cursor=pointer]:
+                - generic [ref=e67]:
+                  - checkbox "Remember me on this device" [ref=e68]
+                  - img [ref=e69]
+                - generic [ref=e71]: Remember me on this device
+              - generic [ref=e72]: Stay logged in for up to 30 days on this trusted device
+            - button "Verifying your credentials..." [disabled]:
+              - generic:
+                - progressbar:
+                  - img
+              - text: Verifying your credentials...
+            - generic [ref=e73]: Verifying your credentials...
+            - status [ref=e74]:
+              - paragraph [ref=e75]: Verifying your credentials...
+            - paragraph [ref=e77]:
+              - link "Reset your password if you've forgotten it" [ref=e78] [cursor=pointer]:
+                - /url: /account/forgot-password
+                - text: Forgot password?
+          - separator "Alternative login methods" [ref=e79]:
+            - paragraph [ref=e81]: OR
+          - region "Social login options" [ref=e82]:
+            - button "Continue with Google" [ref=e84] [cursor=pointer]:
+              - img [ref=e86]
+              - text: Continue with Google
+          - paragraph [ref=e89]:
+            - text: Don't have an account?
+            - link "Create a new account" [ref=e90] [cursor=pointer]:
+              - /url: /account/register
+              - text: Sign up
+    - contentinfo [ref=e91]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - img "Zenith Bioscience Logo" [ref=e95]
+          - generic [ref=e97]:
+            - heading "Contact Us" [level=2] [ref=e98]
+            - link "Contact us" [ref=e99] [cursor=pointer]:
+              - /url: /contact
+              - heading "Get In Touch" [level=6] [ref=e100]
+        - generic [ref=e101]:
+          - heading "© 2025 Zenith Bioscience. All rights reserved." [level=6] [ref=e103]
+          - navigation "Legal and policy links" [ref=e104]:
+            - link "View terms and conditions" [ref=e105] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+              - text: Terms & Conditions
+            - link "View privacy policy" [ref=e106] [cursor=pointer]:
+              - /url: /legal/privacy-policy
+              - text: Privacy Policy
+            - link "View cookie policy" [ref=e107] [cursor=pointer]:
+              - /url: /cookie-policy
+              - text: Cookie Policy
+            - link "View return policy" [ref=e108] [cursor=pointer]:
+              - /url: /legal/return-policy
+              - text: Return Policy
+            - link "View shipping policy" [ref=e109] [cursor=pointer]:
+              - /url: /legal/shipping
+              - text: Shipping Policy
+            - link "View research use disclaimer" [ref=e110] [cursor=pointer]:
+              - /url: /legal/research
+              - text: Research Use Disclaimer
+            - link "Contact legal department" [ref=e111] [cursor=pointer]:
+              - /url: /legal/contact
+              - text: Legal Contact
+    - status [ref=e112]
+    - status [ref=e113]
+```

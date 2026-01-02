@@ -1,0 +1,263 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - alert [ref=e2]
+  - generic [ref=e3]:
+    - link [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+      - text: Skip to main content
+    - link [ref=e5] [cursor=pointer]:
+      - /url: "#main-navigation"
+      - text: Skip to navigation
+    - link [ref=e6] [cursor=pointer]:
+      - /url: "#footer"
+      - text: Skip to footer
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - link [ref=e10] [cursor=pointer]:
+          - /url: /
+          - img [ref=e12]
+          - generic [ref=e13]:
+            - heading [level=5] [ref=e14]: Zenith
+            - heading [level=6] [ref=e15]: Bioscience
+        - navigation [ref=e16]:
+          - link [ref=e17] [cursor=pointer]:
+            - /url: /
+            - text: Home
+          - link [ref=e18] [cursor=pointer]:
+            - /url: /shop
+            - text: Shop
+          - link [ref=e19] [cursor=pointer]:
+            - /url: /faq
+            - text: FAQ
+          - generic [ref=e20]:
+            - link [ref=e21] [cursor=pointer]:
+              - /url: /account
+              - img [ref=e22]
+            - button [ref=e24] [cursor=pointer]:
+              - generic [ref=e25]:
+                - img [ref=e26]
+                - generic [ref=e28]: "0"
+    - main [ref=e29]:
+      - generic [ref=e30]:
+        - navigation [ref=e32]:
+          - list [ref=e33]:
+            - listitem [ref=e34]:
+              - link [ref=e35] [cursor=pointer]:
+                - /url: /
+                - img [ref=e36]
+                - text: Home
+            - listitem [ref=e38]: ›
+            - listitem [ref=e39]:
+              - link [ref=e40] [cursor=pointer]:
+                - /url: /account
+                - text: My Account
+            - listitem [ref=e41]: ›
+            - listitem [ref=e42]:
+              - paragraph [ref=e43]: Addresses
+        - generic [ref=e45]:
+          - link [ref=e46] [cursor=pointer]:
+            - /url: "#main-content"
+            - text: Skip to main content
+          - link [ref=e47] [cursor=pointer]:
+            - /url: "#account-navigation"
+            - text: Skip to account navigation
+          - link [ref=e48] [cursor=pointer]:
+            - /url: "#footer"
+            - text: Skip to footer
+          - generic [ref=e49]:
+            - navigation [ref=e53]:
+              - link [ref=e54] [cursor=pointer]:
+                - /url: /account
+                - img [ref=e56]
+                - generic [ref=e59]: Dashboard
+              - link [ref=e60] [cursor=pointer]:
+                - /url: /account/orders
+                - img [ref=e62]
+                - generic [ref=e65]: Orders
+              - link [ref=e66] [cursor=pointer]:
+                - /url: /account/coa
+                - img [ref=e68]
+                - generic [ref=e71]: COA Submissions
+              - link [ref=e72] [cursor=pointer]:
+                - /url: /account/credits
+                - img [ref=e74]
+                - generic [ref=e77]: Account Credits
+              - link [ref=e78] [cursor=pointer]:
+                - /url: /account/profile
+                - img [ref=e80]
+                - generic [ref=e83]: Profile
+              - link [ref=e84] [cursor=pointer]:
+                - /url: /account/addresses
+                - img [ref=e86]
+                - generic [ref=e89]: Addresses
+              - link [ref=e90] [cursor=pointer]:
+                - /url: /account/password
+                - img [ref=e92]
+                - generic [ref=e95]: Change Password
+              - link [ref=e96] [cursor=pointer]:
+                - /url: /account/gdpr
+                - img [ref=e98]
+                - generic [ref=e101]: Privacy & Data
+              - separator [ref=e102]
+              - button [ref=e103] [cursor=pointer]:
+                - img [ref=e105]
+                - generic [ref=e108]: Logout
+            - generic [ref=e110]:
+              - heading [level=1] [ref=e111]: Address Book
+              - separator [ref=e112]
+              - paragraph [ref=e113]: Manage your shipping and billing addresses. The default address will be used automatically during checkout.
+              - generic [ref=e114]:
+                - heading [level=6] [ref=e115]: My Addresses
+                - button [ref=e116] [cursor=pointer]:
+                  - img [ref=e118]
+                  - text: Add Address
+              - paragraph [ref=e121]: No addresses found. Add your first address to get started.
+    - contentinfo [ref=e122]:
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - img [ref=e126]
+          - generic [ref=e128]:
+            - heading [level=2] [ref=e129]: Contact Us
+            - link [ref=e130] [cursor=pointer]:
+              - /url: /contact
+              - heading [level=6] [ref=e131]: Get In Touch
+        - generic [ref=e132]:
+          - heading [level=6] [ref=e134]: © 2025 Zenith Bioscience. All rights reserved.
+          - navigation [ref=e135]:
+            - link [ref=e136] [cursor=pointer]:
+              - /url: /legal/terms-and-conditions
+              - text: Terms & Conditions
+            - link [ref=e137] [cursor=pointer]:
+              - /url: /legal/privacy-policy
+              - text: Privacy Policy
+            - link [ref=e138] [cursor=pointer]:
+              - /url: /cookie-policy
+              - text: Cookie Policy
+            - link [ref=e139] [cursor=pointer]:
+              - /url: /legal/return-policy
+              - text: Return Policy
+            - link [ref=e140] [cursor=pointer]:
+              - /url: /legal/shipping
+              - text: Shipping Policy
+            - link [ref=e141] [cursor=pointer]:
+              - /url: /legal/research
+              - text: Research Use Disclaimer
+            - link [ref=e142] [cursor=pointer]:
+              - /url: /legal/contact
+              - text: Legal Contact
+    - status [ref=e143]
+    - status [ref=e144]
+  - generic [ref=e145]: Modal closed
+  - dialog "Add Address" [ref=e148]:
+    - heading "Add Address" [level=2] [ref=e149]
+    - generic [ref=e151]:
+      - generic [ref=e153]:
+        - generic [ref=e154]: Address Type
+        - generic [ref=e155]:
+          - combobox "Address Type Shipping" [ref=e156] [cursor=pointer]: Shipping
+          - textbox: SHIPPING
+          - img
+          - group:
+            - generic: Address Type
+      - generic [ref=e158] [cursor=pointer]:
+        - generic [ref=e159]:
+          - checkbox "Use this address for both shipping and billing" [ref=e160]
+          - img [ref=e161]
+        - generic [ref=e163]: Use this address for both shipping and billing
+      - heading "SHIPPING Address" [level=6] [ref=e165]
+      - generic [ref=e167]:
+        - generic [ref=e168]:
+          - text: First Name
+          - generic [ref=e169]: "*"
+        - generic [ref=e170]:
+          - textbox "First Name" [ref=e171]: Default
+          - group:
+            - generic: First Name *
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - text: Last Name
+          - generic [ref=e175]: "*"
+        - generic [ref=e176]:
+          - textbox "Last Name" [ref=e177]: Shipping
+          - group:
+            - generic: Last Name *
+      - generic [ref=e179]:
+        - generic: Company Name (Optional)
+        - generic [ref=e180]:
+          - textbox "Company Name (Optional)" [ref=e181]
+          - group:
+            - generic: Company Name (Optional)
+      - generic [ref=e183]:
+        - generic [ref=e184]:
+          - text: Address Line 1
+          - generic [ref=e185]: "*"
+        - generic [ref=e186]:
+          - textbox "Address Line 1" [ref=e187]: 417 Montgomery St
+          - group:
+            - generic: Address Line 1 *
+      - generic [ref=e189]:
+        - generic [ref=e190]: Address Line 2 (Optional)
+        - generic [ref=e191]:
+          - textbox "Address Line 2 (Optional)" [ref=e192]: Floor 5
+          - group:
+            - generic: Address Line 2 (Optional)
+      - generic [ref=e194]:
+        - generic [ref=e195]:
+          - text: City
+          - generic [ref=e196]: "*"
+        - generic [ref=e197]:
+          - textbox "City" [active] [ref=e198]: San Francisco
+          - group:
+            - generic: City *
+      - generic [ref=e200]:
+        - generic:
+          - text: State
+          - generic: "*"
+        - generic [ref=e201]:
+          - combobox "State" [ref=e202] [cursor=pointer]
+          - textbox
+          - img
+          - group:
+            - generic: State *
+      - generic [ref=e204]:
+        - generic:
+          - text: Postal Code
+          - generic: "*"
+        - generic [ref=e205]:
+          - textbox "Postal Code" [ref=e206]
+          - group:
+            - generic: Postal Code *
+      - generic [ref=e208]:
+        - generic [ref=e209]:
+          - text: Country
+          - generic [ref=e210]: "*"
+        - generic [ref=e211]:
+          - combobox "Country United States" [ref=e212] [cursor=pointer]: United States
+          - textbox: US
+          - img
+          - group:
+            - generic: Country *
+      - generic [ref=e214]:
+        - generic: Phone Number (Optional)
+        - generic [ref=e215]:
+          - textbox "Phone Number (Optional)" [ref=e216]
+          - group:
+            - generic: Phone Number (Optional)
+      - generic [ref=e218]:
+        - generic: Additional Information (Optional)
+        - generic [ref=e219]:
+          - textbox "Additional Information (Optional)" [ref=e220]
+          - group:
+            - generic: Additional Information (Optional)
+        - paragraph [ref=e221]: Delivery instructions, gate codes, etc.
+      - generic [ref=e223] [cursor=pointer]:
+        - generic [ref=e224]:
+          - checkbox "Set as default shipping address" [checked] [ref=e225]
+          - img [ref=e226]
+        - generic [ref=e228]: Set as default shipping address
+    - generic [ref=e229]:
+      - button "Cancel" [ref=e230] [cursor=pointer]
+      - button "Save" [ref=e231] [cursor=pointer]
+```

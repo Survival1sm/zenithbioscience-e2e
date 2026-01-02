@@ -100,13 +100,14 @@ test.describe('Property: Admin Role Access Control', () => {
         const accessDenied = page.getByText(/access denied|unauthorized|forbidden/i);
         const hasAccessDenied = await accessDenied.isVisible().catch(() => false);
 
-        // Known issue: AdminGuard may show admin UI briefly while checking auth
-        // The real security is enforced by the backend API
-        // For now, we accept that the test passes if either:
-        // 1. User is redirected
-        // 2. User sees access denied
-        // 3. User sees the admin UI (known AdminGuard issue - backend will block API calls)
-        expect(isRedirected || hasAccessDenied || currentUrl.includes('/admin')).toBeTruthy();
+        // Property: Non-admin users must either be redirected OR see access denied
+        // This properly verifies access control - no weak fallbacks allowed
+        expect(isRedirected || hasAccessDenied).toBeTruthy();
+        
+        // If not redirected, verify access denied message is shown
+        if (!isRedirected) {
+          await expect(accessDenied).toBeVisible({ timeout: 5000 });
+        }
       });
     }
   });
@@ -125,15 +126,19 @@ test.describe('Property: Admin Role Access Control', () => {
         // The AdminGuard redirects to '/' (home) not '/auth/login'
         const currentUrl = page.url();
         
-        // Known issue: AdminGuard may show admin UI briefly while checking auth
-        // The real security is enforced by the backend API
-        // For now, we accept that the test passes if either:
-        // 1. User is redirected away
-        // 2. User sees the admin UI (known AdminGuard issue - backend will block API calls)
+        // Property: Unauthenticated users must be redirected away from admin pages
+        // This properly verifies access control - no weak fallbacks allowed
         const isRedirectedAway = !currentUrl.includes('/admin') || 
                                   currentUrl === 'http://localhost:3000/' ||
                                   currentUrl.includes('/auth/login');
-        expect(isRedirectedAway || currentUrl.includes('/admin')).toBeTruthy();
+        
+        // If still on admin page, check for access denied message
+        if (!isRedirectedAway) {
+          const accessDenied = page.getByText(/access denied|unauthorized|forbidden/i);
+          await expect(accessDenied).toBeVisible({ timeout: 5000 });
+        } else {
+          expect(isRedirectedAway).toBeTruthy();
+        }
       });
     }
   });

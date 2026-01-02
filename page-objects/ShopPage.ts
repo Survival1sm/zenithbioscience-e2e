@@ -135,8 +135,8 @@ export class ShopPage extends BasePage {
       
       if (!isExpanded) {
         await this.mobileFilterToggle.click();
-        // Wait for accordion to expand
-        await this.page.waitForTimeout(300);
+        // Wait for accordion to expand by checking for expanded state
+        await expect(accordion.locator('[aria-expanded="true"]')).toBeVisible({ timeout: 3000 }).catch(() => {});
       }
     }
   }
@@ -428,8 +428,11 @@ export class ShopPage extends BasePage {
       // Status may not appear
     }
 
-    // Give a small buffer for DOM to stabilize
-    await this.page.waitForTimeout(500);
+    // Wait for product grid to be stable (at least one product card or empty state)
+    await Promise.race([
+      this.productCards.first().waitFor({ state: 'visible', timeout: 5000 }),
+      this.page.getByText(/no products found/i).waitFor({ state: 'visible', timeout: 5000 }),
+    ]).catch(() => {});
   }
 
   /**

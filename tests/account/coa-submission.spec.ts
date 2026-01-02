@@ -69,7 +69,8 @@ test.describe('COA Submission Page', () => {
 
     // The order selection dropdown is only visible if there are eligible orders
     // If no eligible orders, an info alert is shown instead
-    const hasDropdown = await coaSubmissionPage.orderSelectDropdown.isVisible().catch(() => false);
+    // Use the form control which is always present when orders are loaded
+    const hasDropdown = await coaSubmissionPage.orderSelectFormControl.isVisible().catch(() => false);
     const hasNoOrdersAlert = await coaSubmissionPage.page.getByRole('alert').filter({ 
       hasText: /don't have any completed orders/i 
     }).isVisible().catch(() => false);
@@ -138,8 +139,8 @@ test.describe('COA Submission Page', () => {
     expect(initialStep).toBe(1);
 
     // Check if there are orders available to select
-    // The dropdown is only visible if there are eligible orders
-    const hasDropdown = await coaSubmissionPage.orderSelectDropdown.isVisible().catch(() => false);
+    // The form control is visible if orders have loaded (with or without items)
+    const hasDropdown = await coaSubmissionPage.orderSelectFormControl.isVisible().catch(() => false);
     
     if (!hasDropdown) {
       // No eligible orders - verify the "no orders" alert is shown
@@ -151,6 +152,7 @@ test.describe('COA Submission Page', () => {
       return;
     }
 
+    // Click the combobox to open the dropdown
     await coaSubmissionPage.orderSelectDropdown.click();
     
     // Wait briefly for dropdown to open
@@ -165,12 +167,13 @@ test.describe('COA Submission Page', () => {
 
     if (menuItemCount > 0) {
       // If there are orders, we could test navigation
-      // But for now, just verify the dropdown works
+      // Verify the dropdown works and contains selectable items
       expect(menuItemCount).toBeGreaterThan(0);
     } else {
       // No orders available - this is expected for a new test user
-      // The test passes as we verified the dropdown opens
-      expect(true).toBeTruthy();
+      // Verify the dropdown opened successfully (it was visible before we closed it)
+      // and that the order select form control is still in a valid state
+      await expect(coaSubmissionPage.orderSelectFormControl).toBeVisible();
     }
   });
 
@@ -209,7 +212,8 @@ test.describe('COA Submission Page', () => {
 
     // The order dropdown is only visible if there are eligible orders
     // If no eligible orders, an info alert is shown instead
-    const hasDropdown = await coaSubmissionPage.orderSelectDropdown.isVisible().catch(() => false);
+    // Use the form control which is always present when orders are loaded
+    const hasDropdown = await coaSubmissionPage.orderSelectFormControl.isVisible().catch(() => false);
     const hasNoOrdersAlert = await coaSubmissionPage.page.getByRole('alert').filter({ 
       hasText: /don't have any completed orders/i 
     }).isVisible().catch(() => false);

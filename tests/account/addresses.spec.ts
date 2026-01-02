@@ -48,8 +48,8 @@ test.describe('Address Management', () => {
     await loginPage.login(testUser.email, testUser.password);
     await loginPage.waitForLoginComplete();
     
-    // Additional wait for session to be fully established (helps with Firefox and mobile)
-    await page.waitForTimeout(1000);
+    // Wait for session to be fully established by checking for account navigation
+    await page.waitForLoadState('networkidle').catch(() => {});
 
     // Navigate to addresses page
     await addressBookPage.goto();
@@ -76,12 +76,11 @@ test.describe('Address Management', () => {
 
     await addressBookPage.addAddress(billingAddress, 'BILLING');
 
-    // Wait for the address to be added
-    await addressBookPage.page.waitForTimeout(1000);
-
-    // Verify the address was added
-    const newCount = await addressBookPage.getBillingAddressCount();
-    expect(newCount).toBeGreaterThanOrEqual(initialCount);
+    // Verify the address was added by checking count increased
+    await expect(async () => {
+      const newCount = await addressBookPage.getBillingAddressCount();
+      expect(newCount).toBeGreaterThanOrEqual(initialCount);
+    }).toPass({ timeout: 5000 });
 
     // Verify the address exists
     await addressBookPage.assertAddressExists('Billing', 'Address');
@@ -99,12 +98,11 @@ test.describe('Address Management', () => {
 
     await addressBookPage.addAddress(shippingAddress, 'SHIPPING');
 
-    // Wait for the address to be added
-    await addressBookPage.page.waitForTimeout(1000);
-
-    // Verify the address was added
-    const newCount = await addressBookPage.getShippingAddressCount();
-    expect(newCount).toBeGreaterThanOrEqual(initialCount);
+    // Verify the address was added by checking count increased
+    await expect(async () => {
+      const newCount = await addressBookPage.getShippingAddressCount();
+      expect(newCount).toBeGreaterThanOrEqual(initialCount);
+    }).toPass({ timeout: 5000 });
 
     // Verify the address exists
     await addressBookPage.assertAddressExists('Shipping', 'Address');
@@ -119,7 +117,6 @@ test.describe('Address Management', () => {
     };
 
     await addressBookPage.addAddress(addressToEdit, 'BILLING');
-    await addressBookPage.page.waitForTimeout(1000);
 
     // Get the count of addresses
     const addressCount = await addressBookPage.getAddressCount();
@@ -132,9 +129,6 @@ test.describe('Address Management', () => {
       };
 
       await addressBookPage.editAddress(0, updates);
-
-      // Wait for the update to complete
-      await addressBookPage.page.waitForTimeout(1000);
 
       // Verify the address was updated
       await addressBookPage.assertAddressExists('Updated', 'Name');
@@ -150,7 +144,6 @@ test.describe('Address Management', () => {
     };
 
     await addressBookPage.addAddress(addressToDelete, 'BILLING');
-    await addressBookPage.page.waitForTimeout(1000);
 
     // Get the initial count
     const initialCount = await addressBookPage.getAddressCount();
@@ -159,12 +152,11 @@ test.describe('Address Management', () => {
       // Delete the first address
       await addressBookPage.deleteAddress(0);
 
-      // Wait for the deletion to complete
-      await addressBookPage.page.waitForTimeout(1000);
-
       // Verify the address count decreased
-      const newCount = await addressBookPage.getAddressCount();
-      expect(newCount).toBeLessThan(initialCount);
+      await expect(async () => {
+        const newCount = await addressBookPage.getAddressCount();
+        expect(newCount).toBeLessThan(initialCount);
+      }).toPass({ timeout: 5000 });
     }
   });
 
@@ -177,29 +169,21 @@ test.describe('Address Management', () => {
     };
 
     await addressBookPage.addAddress(shippingAddress, 'SHIPPING');
-    await addressBookPage.page.waitForTimeout(1000);
 
     // Get shipping address count
     const shippingCount = await addressBookPage.getShippingAddressCount();
+    expect(shippingCount).toBeGreaterThan(0);
 
-    if (shippingCount > 0) {
-      // Set the first shipping address as default
-      await addressBookPage.setDefaultShipping(0);
+    // Set the first shipping address as default
+    await addressBookPage.setDefaultShipping(0);
 
-      // Wait for the update to complete
-      await addressBookPage.page.waitForTimeout(1000);
-
-      // Verify the address is marked as default
-      const shippingSection = addressBookPage.shippingAddressesSection;
-      const defaultChip = shippingSection.locator('.MuiCard-root').first().locator('.MuiChip-root:has-text("Default")');
-      
-      // The address should either be default or the button should no longer be visible
-      const isDefault = await defaultChip.isVisible().catch(() => false);
-      const setDefaultButton = shippingSection.locator('.MuiCard-root').first().getByRole('button', { name: /set as default/i });
-      const buttonHidden = !(await setDefaultButton.isVisible().catch(() => true));
-      
-      expect(isDefault || buttonHidden).toBeTruthy();
-    }
+    // Verify the first shipping address is marked as default
+    // The default badge must be visible on the address we just set as default
+    const shippingSection = addressBookPage.shippingAddressesSection;
+    const firstShippingCard = shippingSection.locator('.MuiCard-root').first();
+    const defaultBadge = firstShippingCard.locator('.MuiChip-root:has-text("Default")');
+    
+    await expect(defaultBadge).toBeVisible({ timeout: 5000 });
   });
 
   test('should set address as default billing', async () => {
@@ -211,42 +195,21 @@ test.describe('Address Management', () => {
     };
 
     await addressBookPage.addAddress(billingAddress, 'BILLING');
-    await addressBookPage.page.waitForTimeout(1000);
 
     // Get billing address count
     const billingCount = await addressBookPage.getBillingAddressCount();
+    expect(billingCount).toBeGreaterThan(0);
 
-    if (billingCount > 0) {
-      // Set the first billing address as default
-      await addressBookPage.setDefaultBilling(0);
+    // Set the first billing address as default
+    await addressBookPage.setDefaultBilling(0);
 
-      // Wait for the update to complete
-      await addressBookPage.page.waitForTimeout(1000);
-
-      // Verify the address is marked as default OR the operation was attempted
-      // Note: Due to parallel test execution, other tests may have created addresses
-      // that affect the default state. We verify the operation was attempted.
-      const billingSection = addressBookPage.billingAddressesSection;
-      const firstCard = billingSection.locator('.MuiCard-root').first();
-      const defaultChip = firstCard.locator('.MuiChip-root:has-text("Default")');
-      
-      // Check if the address is default
-      const isDefault = await defaultChip.isVisible().catch(() => false);
-      
-      // Check if the "Set as Default" button is not visible (already default or just set)
-      const setDefaultButton = firstCard.getByRole('button', { name: /set as default/i });
-      const buttonNotVisible = !(await setDefaultButton.isVisible().catch(() => false));
-      
-      // Check if any address in the billing section is marked as default
-      const anyDefaultChip = billingSection.locator('.MuiChip-root:has-text("Default")');
-      const anyDefault = await anyDefaultChip.isVisible().catch(() => false);
-      
-      // The test passes if:
-      // 1. The first address is default, OR
-      // 2. The set default button is not visible (already default), OR
-      // 3. Any billing address is marked as default (parallel test may have set another)
-      expect(isDefault || buttonNotVisible || anyDefault).toBeTruthy();
-    }
+    // Verify the first billing address is marked as default
+    // The default badge must be visible on the address we just set as default
+    const billingSection = addressBookPage.billingAddressesSection;
+    const firstBillingCard = billingSection.locator('.MuiCard-root').first();
+    const defaultBadge = firstBillingCard.locator('.MuiChip-root:has-text("Default")');
+    
+    await expect(defaultBadge).toBeVisible({ timeout: 5000 });
   });
 
   test('should show validation errors for invalid address data', async () => {
@@ -257,16 +220,11 @@ test.describe('Address Management', () => {
     // Try to save without filling required fields
     await addressBookPage.saveButton.click();
 
-    // Wait for validation errors to appear
-    await addressBookPage.page.waitForTimeout(500);
-
-    // Check for validation errors
-    const errors = await addressBookPage.getValidationErrors();
-    
-    // Either we have validation errors or the dialog is still open (form didn't submit)
-    const dialogStillOpen = await addressBookPage.addressDialog.isVisible();
-    
-    expect(errors.length > 0 || dialogStillOpen).toBeTruthy();
+    // Check for validation errors - there must be at least one error for empty required fields
+    await expect(async () => {
+      const errors = await addressBookPage.getValidationErrors();
+      expect(errors.length).toBeGreaterThan(0);
+    }).toPass({ timeout: 5000 });
 
     // Close the dialog
     await addressBookPage.cancelButton.click();

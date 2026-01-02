@@ -25,7 +25,7 @@ export default defineConfig({
 
   // Retry configuration: 2 retries in CI, 2 locally for flaky tests
   // This helps handle timing issues, especially on Firefox and mobile viewports
-  retries: process.env.CI ? 2 : 2,
+  retries: process.env.CI ? 1 : 2,
 
   // Worker configuration: 1 worker in CI for stability, undefined (auto) locally
   workers: process.env.CI ? 1 : undefined,

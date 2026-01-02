@@ -209,9 +209,6 @@ export class ResendActivationPage extends BasePage {
    * Waits for either success message, error message, or loading to finish
    */
   async waitForSubmit(): Promise<void> {
-    // Wait for loading to start
-    await this.page.waitForTimeout(100);
-    
     // Wait for either success or error alert to appear, or loading to finish
     await Promise.race([
       this.page.getByRole('alert').waitFor({ state: 'visible', timeout: 15000 }).catch(() => {}),

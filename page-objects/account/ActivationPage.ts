@@ -79,8 +79,8 @@ export class ActivationPage extends BasePage {
   async activateAccount(key: string): Promise<void> {
     await this.page.goto(`${this.url}?key=${encodeURIComponent(key)}`);
     await this.waitForPageLoad();
-    // Additional wait for Firefox which may have slower API response handling
-    await this.page.waitForTimeout(1000);
+    // Wait for activation to complete by checking for success or error alert
+    await this.waitForActivationComplete(15000);
   }
 
   /**
@@ -187,10 +187,7 @@ export class ActivationPage extends BasePage {
         return; // Success - one of the alerts appeared
       } catch {
         attempts++;
-        if (attempts < maxAttempts) {
-          // Wait a bit before retrying (helps with Firefox timing)
-          await this.page.waitForTimeout(1000);
-        }
+        // No fixed wait needed - the waitFor already handles timing
       }
     }
     

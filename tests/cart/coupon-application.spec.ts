@@ -32,7 +32,8 @@ test.describe('Coupon Application', () => {
     await productDetailPage.gotoProduct(productSlug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     await cartPage.goto();
     await cartPage.waitForPage();
   }
@@ -138,8 +139,11 @@ test.describe('Coupon Application', () => {
     // Remove coupon
     await cartPage.removeCoupon();
 
-    // Wait for removal to process
-    await page.waitForTimeout(500);
+    // Wait for removal to process - check coupon is no longer applied
+    await expect(async () => {
+      const hasCoupon = await cartPage.hasCouponApplied();
+      expect(hasCoupon).toBeFalsy();
+    }).toPass({ timeout: 5000 });
 
     // Verify coupon was removed (no success alert)
     hasCoupon = await cartPage.hasCouponApplied();

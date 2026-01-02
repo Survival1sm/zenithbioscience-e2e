@@ -1,4 +1,4 @@
-import { Page, Locator } from '@playwright/test';
+import { Page, Locator, expect } from '@playwright/test';
 import { BasePage } from '../BasePage';
 
 /**
@@ -103,9 +103,19 @@ export class CoaSubmissionPage extends BasePage {
 
   /**
    * Get the order selection dropdown
+   * Uses multiple selectors to handle MUI Select component rendering
    */
   get orderSelectDropdown(): Locator {
-    return this.page.getByLabel('Select Order');
+    // MUI Select renders as a div with role="combobox" inside a FormControl
+    // The label may not be properly associated, so we use the combobox role
+    return this.page.locator('.MuiFormControl-root').filter({ hasText: 'Select Order' }).locator('[role="combobox"]');
+  }
+  
+  /**
+   * Get the order selection form control (parent container)
+   */
+  get orderSelectFormControl(): Locator {
+    return this.page.locator('.MuiFormControl-root').filter({ hasText: 'Select Order' });
   }
 
   /**
@@ -373,12 +383,10 @@ export class CoaSubmissionPage extends BasePage {
    * @param tab - The tab to select ('submit' or 'submissions')
    */
   async selectTab(tab: 'submit' | 'submissions'): Promise<void> {
-    if (tab === 'submit') {
-      await this.submitCoaTab.click();
-    } else {
-      await this.mySubmissionsTab.click();
-    }
-    await this.page.waitForTimeout(300); // Wait for tab panel transition
+    const tabLocator = tab === 'submit' ? this.submitCoaTab : this.mySubmissionsTab;
+    await tabLocator.click();
+    // Wait for tab to be selected
+    await expect(tabLocator).toHaveAttribute('aria-selected', 'true', { timeout: 5000 }).catch(() => {});
   }
 
   // ==================== Step Navigation Actions ====================
@@ -412,16 +420,26 @@ export class CoaSubmissionPage extends BasePage {
    * Click the Next button to go to the next step
    */
   async goToNextStep(): Promise<void> {
+    const currentStep = await this.getCurrentStep();
     await this.nextButton.click();
-    await this.page.waitForTimeout(300); // Wait for step transition
+    // Wait for step transition by checking step number changed
+    await expect(async () => {
+      const newStep = await this.getCurrentStep();
+      expect(newStep).toBeGreaterThan(currentStep);
+    }).toPass({ timeout: 5000 }).catch(() => {});
   }
 
   /**
    * Click the Back button to go to the previous step
    */
   async goToPreviousStep(): Promise<void> {
+    const currentStep = await this.getCurrentStep();
     await this.backButton.click();
-    await this.page.waitForTimeout(300); // Wait for step transition
+    // Wait for step transition by checking step number changed
+    await expect(async () => {
+      const newStep = await this.getCurrentStep();
+      expect(newStep).toBeLessThan(currentStep);
+    }).toPass({ timeout: 5000 }).catch(() => {});
   }
 
   // ==================== Step 1: Order Selection Actions ====================
@@ -435,14 +453,15 @@ export class CoaSubmissionPage extends BasePage {
     await this.orderSelectDropdown.click();
     
     // Wait for dropdown options to appear
-    await this.page.waitForSelector('.MuiMenu-paper', { state: 'visible' });
+    const menuPaper = this.page.locator('.MuiMenu-paper');
+    await menuPaper.waitFor({ state: 'visible', timeout: 5000 });
     
     // Find and click the option containing the order ID
     const option = this.page.locator('.MuiMenuItem-root').filter({ hasText: orderId });
     await option.click();
     
-    // Wait for order details to load
-    await this.page.waitForTimeout(500);
+    // Wait for menu to close and order details to load
+    await menuPaper.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   // ==================== Step 2: Batch Selection Actions ====================
@@ -463,13 +482,15 @@ export class CoaSubmissionPage extends BasePage {
     await this.batchSelectDropdown.click();
     
     // Wait for dropdown options to appear
-    await this.page.waitForSelector('.MuiMenu-paper', { state: 'visible' });
+    const menuPaper = this.page.locator('.MuiMenu-paper');
+    await menuPaper.waitFor({ state: 'visible', timeout: 5000 });
     
     // Find and click the option containing the batch number
     const option = this.page.locator('.MuiMenuItem-root').filter({ hasText: batchNumber });
     await option.click();
     
-    await this.page.waitForTimeout(300);
+    // Wait for menu to close
+    await menuPaper.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   // ==================== Step 3: COA Details Actions ====================
@@ -482,7 +503,8 @@ export class CoaSubmissionPage extends BasePage {
     // Upload COA file
     if (data.coaFile) {
       await this.coaFileInput.setInputFiles(data.coaFile);
-      await this.page.waitForTimeout(500); // Wait for file processing
+      // Wait for file to be processed by checking for file name display
+      await this.page.locator('text=/.*\\.pdf/i').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     }
     
     // Fill testing provider
@@ -654,7 +676,8 @@ export class CoaSubmissionPage extends BasePage {
     // Upload new COA file
     if (data.coaFile) {
       await this.resubmissionFileInput.setInputFiles(data.coaFile);
-      await this.page.waitForTimeout(500);
+      // Wait for file to be processed
+      await this.page.locator('text=/.*\\.pdf/i').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     }
     
     // Fill optional fields if provided
@@ -690,7 +713,8 @@ export class CoaSubmissionPage extends BasePage {
    */
   async filterByStatus(status: string): Promise<void> {
     await this.statusFilterDropdown.click();
-    await this.page.waitForSelector('.MuiMenu-paper', { state: 'visible' });
+    const menuPaper = this.page.locator('.MuiMenu-paper');
+    await menuPaper.waitFor({ state: 'visible', timeout: 5000 });
     
     if (status === '') {
       await this.page.getByRole('option', { name: 'All Statuses' }).click();
@@ -698,7 +722,8 @@ export class CoaSubmissionPage extends BasePage {
       await this.page.getByRole('option', { name: status }).click();
     }
     
-    await this.page.waitForTimeout(300);
+    // Wait for menu to close
+    await menuPaper.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -708,7 +733,8 @@ export class CoaSubmissionPage extends BasePage {
   async goToPage(pageNumber: number): Promise<void> {
     const pageButton = this.pagination.getByRole('button', { name: String(pageNumber) });
     await pageButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for page button to be selected
+    await expect(pageButton).toHaveAttribute('aria-current', 'true', { timeout: 5000 }).catch(() => {});
   }
 
   // ==================== Validation and State Methods ====================
@@ -803,9 +829,6 @@ export class CoaSubmissionPage extends BasePage {
    */
   async dismissOnboardingDialog(): Promise<void> {
     try {
-      // Wait a moment for dialog to potentially appear
-      await this.page.waitForTimeout(500);
-      
       // Check for onboarding dialog by its title
       const dialog = this.page.getByRole('dialog').filter({ 
         hasText: /COA (Submission|Management) Guide/i 
@@ -830,7 +853,7 @@ export class CoaSubmissionPage extends BasePage {
         
         // Fallback: press Escape
         await this.page.keyboard.press('Escape');
-        await this.page.waitForTimeout(500);
+        await dialog.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
       }
     } catch {
       // Dialog not present or already dismissed
@@ -867,6 +890,39 @@ export class CoaSubmissionPage extends BasePage {
       await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 });
     } catch {
       // Spinner may not be present
+    }
+    
+    // Wait for orders to load - either the dropdown with orders or the "no orders" alert
+    await this.waitForOrdersLoaded();
+  }
+  
+  /**
+   * Wait for orders to be loaded on the Submit COA tab
+   * Either the order dropdown will have items, or the "no orders" alert will be shown
+   */
+  async waitForOrdersLoaded(): Promise<void> {
+    // Wait for either:
+    // 1. The order dropdown to be visible (orders loaded)
+    // 2. The "no orders" alert to be visible (no eligible orders)
+    // 3. A loading spinner to disappear
+    
+    const orderDropdown = this.orderSelectFormControl;
+    const noOrdersAlert = this.page.getByRole('alert').filter({ 
+      hasText: /don't have any completed orders/i 
+    });
+    
+    try {
+      // First wait for any loading spinner to disappear
+      await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+      
+      // Then wait for either the dropdown or the alert
+      await Promise.race([
+        orderDropdown.waitFor({ state: 'visible', timeout: 10000 }),
+        noOrdersAlert.waitFor({ state: 'visible', timeout: 10000 })
+      ]);
+    } catch {
+      // If neither appears, the page might still be loading or there's an error
+      // Continue anyway and let the test handle it
     }
   }
 

@@ -40,8 +40,8 @@ test.describe('Cart Management', () => {
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Navigate to cart page
     await cartPage.goto();
@@ -66,8 +66,8 @@ test.describe('Cart Management', () => {
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Navigate to cart page
     await cartPage.goto();
@@ -75,9 +75,6 @@ test.describe('Cart Management', () => {
 
     // Update quantity
     await cartPage.updateItemQuantity(product.name, newQuantity);
-
-    // Wait for update to process
-    await page.waitForTimeout(1000);
 
     // Verify quantity was updated
     const quantity = await cartPage.getItemQuantity(product.name);
@@ -93,8 +90,8 @@ test.describe('Cart Management', () => {
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Navigate to cart page
     await cartPage.goto();
@@ -106,9 +103,6 @@ test.describe('Cart Management', () => {
 
     // Remove the item
     await cartPage.removeItem(product.name);
-
-    // Wait for removal to process
-    await page.waitForTimeout(1000);
 
     // Verify product was removed - cart should be empty now
     const isEmpty = await cartPage.isEmpty();
@@ -151,8 +145,8 @@ test.describe('Cart Management', () => {
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Navigate to cart and verify item
     await cartPage.goto();
@@ -183,8 +177,8 @@ test.describe('Cart Management', () => {
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete
-    await page.waitForTimeout(1000);
+    // Wait for add to cart notification
+    await page.locator('.MuiSnackbar-root').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Navigate to cart page
     await cartPage.goto();

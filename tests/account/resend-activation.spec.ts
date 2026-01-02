@@ -71,8 +71,8 @@ test.describe('Resend Activation Email', () => {
     // Submit the form with an invalid email
     await resendActivationPage.submitEmail(invalidEmail);
 
-    // Wait briefly for validation
-    await resendActivationPage.page.waitForTimeout(500);
+    // Wait briefly for validation - use network idle instead of fixed timeout
+    await resendActivationPage.page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
 
     // Check for error message or form validation
     const hasError = await resendActivationPage.hasErrorMessage();

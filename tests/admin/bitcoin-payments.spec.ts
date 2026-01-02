@@ -32,7 +32,8 @@ test.describe('Bitcoin Admin Dashboard', () => {
     // Login as admin
     await loginPage.goto();
     await loginPage.login(adminUser.email, adminUser.password);
-    await page.waitForTimeout(1000);
+    // Wait for login to complete
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
   });
 
   test.describe('Page Access and Display', () => {

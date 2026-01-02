@@ -65,8 +65,9 @@ export abstract class BasePage {
   protected async waitForPageLoad(): Promise<void> {
     // Use domcontentloaded instead of networkidle to avoid timeout on pages with long-polling
     await this.page.waitForLoadState('domcontentloaded');
-    // Small delay to ensure React hydration completes (helps with WebKit)
-    await this.page.waitForTimeout(100);
+    // Wait for React hydration by checking for interactive elements or body to be stable
+    // This replaces the fixed 100ms timeout with a condition-based wait
+    await this.page.locator('body').waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     // Handle age verification dialog if present
     await this.handleAgeVerification();
     // Handle cookie consent if present
@@ -102,8 +103,8 @@ export abstract class BasePage {
       const acceptButton = this.page.getByRole('button', { name: 'Accept' });
       if (await acceptButton.isVisible({ timeout: 1000 })) {
         await acceptButton.click();
-        // Wait for banner to close
-        await this.page.waitForTimeout(300);
+        // Wait for banner to close by checking button is no longer visible
+        await acceptButton.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
       }
     } catch {
       // Cookie consent banner not present, continue
@@ -334,8 +335,12 @@ export abstract class BasePage {
   /**
    * Wait for a specific amount of time (use sparingly)
    * @param ms - Milliseconds to wait
+   * @deprecated Prefer condition-based waits like waitForElement, waitForText, or expect().toBeVisible()
+   * Only use for animation delays or when no other condition can be used
    */
   async wait(ms: number): Promise<void> {
+    // JUSTIFICATION: This is a utility method for cases where fixed waits are unavoidable
+    // (e.g., CSS animations, third-party component transitions)
     await this.page.waitForTimeout(ms);
   }
 }

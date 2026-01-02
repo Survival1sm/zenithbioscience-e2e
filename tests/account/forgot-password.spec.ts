@@ -75,20 +75,20 @@ test.describe('Forgot Password', () => {
     await forgotPasswordPage.fillEmail('invalid-email-format');
     await forgotPasswordPage.clickSubmit();
 
-    // Wait a moment for validation
-    await forgotPasswordPage.page.waitForTimeout(1000);
+    // Wait for form submission to complete
+    await forgotPasswordPage.waitForSubmit();
 
-    // The form should either:
-    // 1. Show a validation error
-    // 2. Prevent submission (button stays enabled, no success message)
-    // 3. Show an error alert from the backend
-
-    // Check if we got an error message or if form validation prevented submission
+    // Verify error message is displayed for invalid email format
     const hasError = await forgotPasswordPage.hasErrorMessage();
-    const hasSuccess = await forgotPasswordPage.hasSuccessMessage();
+    expect(hasError).toBeTruthy();
 
-    // Either there's an error message, or no success message (validation prevented submission)
-    expect(hasError || !hasSuccess).toBeTruthy();
+    // Verify no success message is shown
+    const hasSuccess = await forgotPasswordPage.hasSuccessMessage();
+    expect(hasSuccess).toBeFalsy();
+
+    // Verify error message content indicates validation failure
+    const errorMessage = await forgotPasswordPage.getErrorMessage();
+    expect(errorMessage).toBeTruthy();
   });
 
   /**
@@ -97,10 +97,11 @@ test.describe('Forgot Password', () => {
    * (to prevent email enumeration attacks)
    * 
    * NOTE: Currently the backend returns an error for non-existent emails, which is a
-   * security issue (email enumeration). The frontend handles this gracefully by showing
-   * an error message. This test documents the current behavior.
+   * security issue (email enumeration). This test documents the current behavior and
+   * expects the backend to be fixed to return success for all emails.
    * 
-   * TODO: Backend should be updated to return 200 OK for all emails to prevent enumeration.
+   * SECURITY: Backend should return 200 OK for all emails to prevent enumeration.
+   * When backend is fixed, this test will pass with success message assertion.
    */
   test('should show success message for non-existent email (no information leak)', async () => {
     // Submit with a non-existent email address
@@ -110,21 +111,24 @@ test.describe('Forgot Password', () => {
     // Wait for the submission to complete
     await forgotPasswordPage.waitForSubmit();
 
-    // Current behavior: Backend returns error for non-existent emails
     // Ideal behavior: Backend should return success to prevent email enumeration
+    // The test expects success message - if backend leaks info, this test will fail
+    // and serve as a reminder to fix the security issue
     const hasSuccess = await forgotPasswordPage.hasSuccessMessage();
-    const hasError = await forgotPasswordPage.hasErrorMessage();
     
-    // Accept either success (ideal) or error (current backend behavior)
-    // This test passes if the form responds to the submission
-    expect(hasSuccess || hasError).toBeTruthy();
-    
-    // If we got an error, log it for visibility but don't fail
-    // This is a known security issue that should be fixed in the backend
-    if (hasError) {
-      const errorMessage = await forgotPasswordPage.getErrorMessage();
-      console.log(`[Security Note] Backend leaked email existence info: ${errorMessage}`);
+    // If we got an error instead of success, log the security concern
+    if (!hasSuccess) {
+      const hasError = await forgotPasswordPage.hasErrorMessage();
+      if (hasError) {
+        const errorMessage = await forgotPasswordPage.getErrorMessage();
+        console.warn(`[SECURITY ISSUE] Backend leaked email existence info: ${errorMessage}`);
+        console.warn('[SECURITY ISSUE] Backend should return success for all emails to prevent enumeration attacks');
+      }
     }
+    
+    // Assert success message is shown (this is the secure behavior)
+    // If this fails, it indicates a security vulnerability that needs to be fixed
+    expect(hasSuccess).toBeTruthy();
   });
 
   /**
@@ -231,10 +235,10 @@ test.describe('Forgot Password', () => {
 
   /**
    * Requirement 15.10: Loading state during submission
-   * Verifies that the form submission completes and shows a response
+   * Verifies that the form submission completes and shows success message
    * 
    * NOTE: The loading state may be very brief depending on network speed.
-   * This test verifies that submission completes with a response.
+   * This test verifies that submission completes with a success response.
    */
   test('should show loading state during form submission', async () => {
     const customer = getTestUser('customer');
@@ -245,12 +249,15 @@ test.describe('Forgot Password', () => {
     // Click submit
     await forgotPasswordPage.clickSubmit();
 
-    // Wait for submission to complete (either success or error)
+    // Wait for submission to complete
     await forgotPasswordPage.waitForSubmit();
 
-    // Verify we got a response (success or error) - this confirms submission completed
+    // Verify success message is shown after submission completes
     const hasSuccess = await forgotPasswordPage.hasSuccessMessage();
-    const hasError = await forgotPasswordPage.hasErrorMessage();
-    expect(hasSuccess || hasError).toBeTruthy();
+    expect(hasSuccess).toBeTruthy();
+
+    // Verify success message content
+    const successMessage = await forgotPasswordPage.getSuccessMessage();
+    expect(successMessage).toBeTruthy();
   });
 });

@@ -317,8 +317,8 @@ export class CreditsPage extends BasePage {
       await this.selectDateRange(filters.dateRange);
     }
 
-    // Wait for filter to apply
-    await this.page.waitForTimeout(500);
+    // Wait for filter to apply by checking loading state
+    await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -328,8 +328,12 @@ export class CreditsPage extends BasePage {
   private async selectCreditType(type: string): Promise<void> {
     // Find the FormControl containing "Credit Type" label and click the select
     const formControl = this.filterSection.locator('.MuiFormControl-root').filter({ hasText: 'Credit Type' });
-    await formControl.locator('.MuiSelect-select').click();
-    await this.page.waitForTimeout(300);
+    const selectTrigger = formControl.locator('.MuiSelect-select');
+    await selectTrigger.click();
+    
+    // Wait for listbox to appear
+    const listbox = this.page.getByRole('listbox');
+    await listbox.waitFor({ state: 'visible', timeout: 3000 });
 
     const typeLabels: Record<string, string> = {
       'ALL': 'All Types',
@@ -343,7 +347,8 @@ export class CreditsPage extends BasePage {
     // MUI Select options appear in a listbox (Popover/Menu)
     const option = this.page.getByRole('option', { name: label });
     await option.click();
-    await this.page.waitForTimeout(300);
+    // Wait for listbox to close
+    await listbox.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -352,8 +357,12 @@ export class CreditsPage extends BasePage {
    */
   private async selectStatus(status: string): Promise<void> {
     const formControl = this.filterSection.locator('.MuiFormControl-root').filter({ hasText: 'Status' });
-    await formControl.locator('.MuiSelect-select').click();
-    await this.page.waitForTimeout(300);
+    const selectTrigger = formControl.locator('.MuiSelect-select');
+    await selectTrigger.click();
+    
+    // Wait for listbox to appear
+    const listbox = this.page.getByRole('listbox');
+    await listbox.waitFor({ state: 'visible', timeout: 3000 });
 
     const statusLabels: Record<string, string> = {
       'ALL': 'All Status',
@@ -365,7 +374,8 @@ export class CreditsPage extends BasePage {
     const label = statusLabels[status] || status;
     const option = this.page.getByRole('option', { name: label });
     await option.click();
-    await this.page.waitForTimeout(300);
+    // Wait for listbox to close
+    await listbox.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -374,8 +384,12 @@ export class CreditsPage extends BasePage {
    */
   private async selectDateRange(dateRange: string): Promise<void> {
     const formControl = this.filterSection.locator('.MuiFormControl-root').filter({ hasText: 'Date Range' });
-    await formControl.locator('.MuiSelect-select').click();
-    await this.page.waitForTimeout(300);
+    const selectTrigger = formControl.locator('.MuiSelect-select');
+    await selectTrigger.click();
+    
+    // Wait for listbox to appear
+    const listbox = this.page.getByRole('listbox');
+    await listbox.waitFor({ state: 'visible', timeout: 3000 });
 
     const dateRangeLabels: Record<string, string> = {
       'ALL': 'All Time',
@@ -387,7 +401,8 @@ export class CreditsPage extends BasePage {
     const label = dateRangeLabels[dateRange] || dateRange;
     const option = this.page.getByRole('option', { name: label });
     await option.click();
-    await this.page.waitForTimeout(300);
+    // Wait for listbox to close
+    await listbox.waitFor({ state: 'hidden', timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -414,8 +429,8 @@ export class CreditsPage extends BasePage {
     const pageButton = this.pagination.getByRole('button', { name: String(pageNumber) });
     await pageButton.click();
     
-    // Wait for page change
-    await this.page.waitForTimeout(300);
+    // Wait for page change by checking the button becomes selected
+    await expect(pageButton).toHaveAttribute('aria-current', 'true', { timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -463,7 +478,6 @@ export class CreditsPage extends BasePage {
   async refresh(): Promise<void> {
     await this.refreshButton.click();
     // Wait for loading to complete
-    await this.page.waitForTimeout(500);
     await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
   }
 

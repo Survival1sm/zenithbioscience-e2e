@@ -117,8 +117,6 @@ export class OrderHistoryPage extends BasePage {
     // Wait for loading skeleton to appear and then disappear (orders are loading)
     await this.loadingSkeleton.first().waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     await this.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
-    // Wait a bit more for the data to render after loading completes
-    await this.page.waitForTimeout(500);
     // Wait for either orders to appear (tabs visible) or empty state
     await Promise.race([
       this.tabsContainer.waitFor({ state: 'visible', timeout: 10000 }),
@@ -148,7 +146,10 @@ export class OrderHistoryPage extends BasePage {
     }[tab];
     
     await tabLocator.click();
-    await this.page.waitForTimeout(500);
+    // Wait for tab to be selected
+    await expect(tabLocator).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
+    // Wait for loading to complete
+    await this.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
   }
 
   /**
@@ -240,8 +241,8 @@ export class OrderHistoryPage extends BasePage {
    * Supports both the display order number (ORD-xxx) and internal order ID
    */
   async hasOrder(orderIdOrNumber: string): Promise<boolean> {
-    // Wait for the grid to be visible
-    await this.page.waitForTimeout(500);
+    // Wait for the data grid or cards to be visible
+    await this.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     
     // Check if there's a link to the order detail page with this ID
     const orderLink = this.page.locator(`a[href*="${orderIdOrNumber}"]`);
@@ -465,10 +466,7 @@ export class OrderHistoryPage extends BasePage {
    */
   async filterByStatus(status: 'all' | 'active' | 'completed'): Promise<void> {
     await this.selectTab(status);
-    // Wait for the tab panel content to update
-    await this.page.waitForTimeout(500);
-    // Wait for any loading to complete
-    await this.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+    // selectTab already waits for loading to complete
   }
 
   // ==================== Order Detail Methods ====================
@@ -484,7 +482,9 @@ export class OrderHistoryPage extends BasePage {
     
     // Wait for the order detail page to load
     await this.page.waitForLoadState('domcontentloaded');
-    await this.page.waitForTimeout(500);
+    // Wait for order heading to appear
+    const orderHeading = this.page.getByRole('heading', { name: /order #/i });
+    await orderHeading.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
     
     // Extract order information from the detail page
     const orderInfo: OrderDetailInfo = {
@@ -496,7 +496,6 @@ export class OrderHistoryPage extends BasePage {
     };
     
     // Get order number from heading (e.g., "Order #ORD-123")
-    const orderHeading = this.page.getByRole('heading', { name: /order #/i });
     if (await orderHeading.isVisible({ timeout: 5000 })) {
       const headingText = await orderHeading.textContent();
       const match = headingText?.match(/#([A-Z0-9-]+)/i);
@@ -567,31 +566,26 @@ export class OrderHistoryPage extends BasePage {
    * @param expectedStatus - The expected status to wait for
    * @param timeout - Maximum time to wait in milliseconds (default: 30000)
    * @returns True if the status was updated to the expected value
+   * 
+   * JUSTIFICATION for fixed timeout: This is a polling loop waiting for WebSocket-driven
+   * status updates. The pollInterval is necessary because we're waiting for an external
+   * event (WebSocket message) that updates the DOM asynchronously.
    */
   async waitForStatusUpdate(
     orderNumber: string, 
     expectedStatus: string, 
     timeout: number = 30000
   ): Promise<boolean> {
-    const startTime = Date.now();
-    const pollInterval = 1000; // Check every second
-    
-    while (Date.now() - startTime < timeout) {
-      // Check current status
-      const currentStatus = await this.getOrderStatus(orderNumber);
-      
-      if (currentStatus?.toLowerCase().includes(expectedStatus.toLowerCase())) {
-        return true;
-      }
-      
-      // Wait before next poll
-      await this.page.waitForTimeout(pollInterval);
-      
-      // Optionally refresh to get latest data (WebSocket should update automatically)
-      // but we check the DOM for any updates
+    // Use Playwright's expect with polling for cleaner implementation
+    try {
+      await expect(async () => {
+        const currentStatus = await this.getOrderStatus(orderNumber);
+        expect(currentStatus?.toLowerCase()).toContain(expectedStatus.toLowerCase());
+      }).toPass({ timeout });
+      return true;
+    } catch {
+      return false;
     }
-    
-    return false;
   }
 
   /**
@@ -600,24 +594,20 @@ export class OrderHistoryPage extends BasePage {
    * @param expectedStatus - The expected status to wait for
    * @param timeout - Maximum time to wait in milliseconds (default: 30000)
    * @returns True if the status was updated to the expected value
+   * 
+   * JUSTIFICATION for polling: This waits for WebSocket-driven status updates on the
+   * order detail page. The status chip updates asynchronously via WebSocket.
    */
   async waitForStatusUpdateOnDetailPage(
     expectedStatus: string,
     timeout: number = 30000
   ): Promise<boolean> {
-    const startTime = Date.now();
-    const pollInterval = 1000;
+    const statusChip = this.page.locator('.MuiChip-root').first();
     
-    while (Date.now() - startTime < timeout) {
-      // Check status chip on detail page
-      const statusChip = this.page.locator('.MuiChip-root').first();
-      if (await statusChip.isVisible({ timeout: 1000 }).catch(() => false)) {
-        const currentStatus = await statusChip.textContent();
-        if (currentStatus?.toLowerCase().includes(expectedStatus.toLowerCase())) {
-          return true;
-        }
-      }
-      
+    try {
+      await expect(statusChip).toContainText(expectedStatus, { ignoreCase: true, timeout });
+      return true;
+    } catch {
       // Also check for snackbar notification about status update
       const snackbar = this.page.locator('.MuiSnackbar-root');
       if (await snackbar.isVisible({ timeout: 500 }).catch(() => false)) {
@@ -626,11 +616,8 @@ export class OrderHistoryPage extends BasePage {
           return true;
         }
       }
-      
-      await this.page.waitForTimeout(pollInterval);
+      return false;
     }
-    
-    return false;
   }
 
   // ==================== Helper Methods ====================
@@ -838,7 +825,7 @@ export class OrderHistoryPage extends BasePage {
     const refreshButton = this.page.getByRole('button', { name: /refresh/i });
     if (await refreshButton.isVisible({ timeout: 1000 }).catch(() => false)) {
       await refreshButton.click();
-      await this.page.waitForTimeout(500);
+      // Wait for loading to complete
       await this.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
       return;
     }

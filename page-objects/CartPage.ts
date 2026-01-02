@@ -242,8 +242,11 @@ export class CartPage extends BasePage {
       await quantityInput.fill(quantity.toString());
       await quantityInput.press('Tab');
     }
-    // Wait for cart update
-    await this.page.waitForTimeout(500);
+    // Wait for cart update by checking the input value changed
+    await expect(async () => {
+      const currentQty = await this.getItemQuantity(productName);
+      expect(currentQty).toBe(quantity);
+    }).toPass({ timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -256,12 +259,15 @@ export class CartPage extends BasePage {
       const itemCard = this.getMobileCartItemByName(productName);
       const removeButton = this.getMobileRemoveButton(itemCard);
       await removeButton.click();
+      // Wait for item card to be removed
+      await itemCard.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     } else {
       const removeButton = this.getRemoveButton(productName);
       await removeButton.click();
+      // Wait for item row to be removed
+      const itemRow = this.getCartItemByName(productName);
+      await itemRow.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
-    // Wait for item to be removed
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -367,8 +373,13 @@ export class CartPage extends BasePage {
   async applyCoupon(code: string): Promise<void> {
     await this.couponInput.fill(code.toUpperCase());
     await this.applyCouponButton.click();
-    // Wait for coupon validation response
-    await this.page.waitForTimeout(1500);
+    // Wait for coupon validation response by checking for success or error alert
+    const successAlert = this.page.locator('.MuiAlert-standardSuccess');
+    const errorAlert = this.page.locator('.MuiAlert-standardError');
+    await Promise.race([
+      successAlert.waitFor({ state: 'visible', timeout: 10000 }),
+      errorAlert.waitFor({ state: 'visible', timeout: 10000 }),
+    ]).catch(() => {});
   }
 
   /**
@@ -391,7 +402,8 @@ export class CartPage extends BasePage {
         const testId = await btn.getAttribute('data-testid');
         if (testId !== 'mobile-cart-item-remove') {
           await btn.click();
-          await this.page.waitForTimeout(500);
+          // Wait for coupon to be removed
+          await this.page.locator('.MuiAlert-standardSuccess').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
           return;
         }
       }
@@ -399,7 +411,8 @@ export class CartPage extends BasePage {
       await removeButton.click();
     }
     
-    await this.page.waitForTimeout(500);
+    // Wait for coupon success alert to disappear
+    await this.page.locator('.MuiAlert-standardSuccess').waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**

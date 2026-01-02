@@ -27,49 +27,41 @@ test.describe('Admin Dashboard Access Control', () => {
       await page.goto('http://localhost:3000/admin');
       await page.waitForLoadState('networkidle');
 
-      // Wait for the page to settle
+      // Wait for the page to settle and any redirects to complete
       await page.waitForTimeout(3000);
 
-      // The AdminGuard may show the dashboard briefly while checking auth
-      // but should eventually redirect OR show a loading/null state
       const currentUrl = page.url();
+      const dashboardHeading = page.getByRole('heading', { 
+        name: 'Business Intelligence Dashboard', 
+        level: 1 
+      });
       
-      // Check if we're still on admin page
-      if (currentUrl.includes('/admin')) {
-        // If still on admin, the dashboard should either:
-        // 1. Show loading state (AdminGuard checking auth)
-        // 2. Show null/empty (AdminGuard returning null before redirect)
-        // 3. Eventually redirect (may take time)
+      const isOnAdmin = currentUrl.includes('/admin');
+      const hasFullAccess = await dashboardHeading.isVisible().catch(() => false);
+      
+      // Security verification: unauthenticated users should NEVER have full admin access
+      // Valid outcomes:
+      // 1. Redirected away from /admin (isOnAdmin = false)
+      // 2. On /admin but access is blocked (hasFullAccess = false, showing loading/denied state)
+      
+      if (isOnAdmin) {
+        // If still on admin URL, verify access is actually blocked
+        // Check for access denied, unauthorized, or loading indicators
+        const accessDeniedIndicator = page.getByText(/access denied|unauthorized|forbidden|loading/i);
+        const isAccessBlocked = await accessDeniedIndicator.isVisible().catch(() => false);
         
-        // Wait a bit more for potential redirect
-        await page.waitForTimeout(2000);
-        
-        const finalUrl = page.url();
-        const dashboardHeading = page.getByRole('heading', { name: 'Business Intelligence Dashboard', level: 1 });
-        const isHeadingVisible = await dashboardHeading.isVisible().catch(() => false);
-        
-        // If heading is visible, the AdminGuard is not blocking properly
-        // This is a known behavior - the AdminGuard shows content briefly
-        // The test should verify that either:
-        // - User is redirected away
-        // - OR the dashboard is in a loading/restricted state
-        
-        if (isHeadingVisible) {
-          // Dashboard is visible - check if it's in loading state (acceptable)
-          const loadingText = page.getByText('Loading dashboard data...');
-          const isLoading = await loadingText.isVisible().catch(() => false);
-          
-          // Either redirected, or showing loading state is acceptable
-          // The key security check is that unauthenticated users can't perform admin actions
-          expect(finalUrl.includes('/admin') || isLoading).toBeTruthy();
-        } else {
-          // Heading not visible - either redirected or AdminGuard returned null
-          expect(true).toBeTruthy();
-        }
-      } else {
-        // Successfully redirected away from admin
-        expect(true).toBeTruthy();
+        // If on admin page, either access should be blocked OR dashboard should not be fully visible
+        expect(
+          isAccessBlocked || !hasFullAccess,
+          'Unauthenticated user should not have full admin dashboard access'
+        ).toBe(true);
       }
+      
+      // Final assertion: unauthenticated user should NEVER have both admin URL AND full dashboard access
+      expect(
+        isOnAdmin && hasFullAccess,
+        'Unauthenticated user must not have full admin dashboard access'
+      ).toBe(false);
     });
   });
 
@@ -94,35 +86,46 @@ test.describe('Admin Dashboard Access Control', () => {
       await page.goto('http://localhost:3000/admin');
       await page.waitForLoadState('networkidle');
 
-      // Wait for AdminGuard to check auth and redirect
+      // Wait for AdminGuard to check auth and potentially redirect
       await page.waitForTimeout(5000);
 
       const currentUrl = page.url();
+      const dashboardHeading = page.getByRole('heading', { 
+        name: 'Business Intelligence Dashboard', 
+        level: 1 
+      });
       
-      // Check if redirected away from admin
-      if (!currentUrl.includes('/admin') || currentUrl === 'http://localhost:3000/') {
-        // Successfully redirected
-        expect(true).toBeTruthy();
-      } else {
-        // Still on admin page - this is a known issue with AdminGuard
-        // The AdminGuard shows the dashboard briefly while checking auth
-        // but the dashboard data won't load for non-admin users
-        
-        // Verify the dashboard is in a loading/error state (not fully functional)
+      const isOnAdmin = currentUrl.includes('/admin');
+      const hasFullAccess = await dashboardHeading.isVisible().catch(() => false);
+      
+      // Security verification: regular users should NEVER have full admin access
+      // Valid outcomes:
+      // 1. Redirected away from /admin (isOnAdmin = false)
+      // 2. On /admin but access is blocked (hasFullAccess = false)
+      // 3. On /admin showing loading/error state (API rejects non-admin requests)
+      
+      if (isOnAdmin) {
+        // If still on admin page, verify access is actually blocked
         const loadingText = page.getByText('Loading dashboard data...');
-        const errorText = page.getByText(/error|failed|unauthorized/i);
+        const errorText = page.getByText(/error|failed|unauthorized|access denied|forbidden/i);
         
         const isLoading = await loadingText.isVisible().catch(() => false);
         const hasError = await errorText.isVisible().catch(() => false);
         
-        // The dashboard should either be loading (and will eventually fail)
-        // or show an error (because the API will reject non-admin requests)
-        // This is acceptable behavior - the key is that the data won't load
-        
-        // For now, we accept that the AdminGuard shows the UI briefly
-        // The real security is enforced by the backend API
-        expect(true).toBeTruthy();
+        // If on admin page, either:
+        // - Dashboard should not be fully visible (hasFullAccess = false)
+        // - OR should show loading/error state (backend will reject)
+        expect(
+          !hasFullAccess || isLoading || hasError,
+          'Regular user should not have full admin dashboard access'
+        ).toBe(true);
       }
+      
+      // Final assertion: regular user should NEVER have both admin URL AND full dashboard access
+      expect(
+        isOnAdmin && hasFullAccess,
+        'Regular user must not have full admin dashboard access'
+      ).toBe(false);
     });
   });
 

@@ -293,7 +293,6 @@ export class BitcoinPaymentPage extends BasePage {
     
     // Wait for the Bitcoin payment section to appear
     await this.bitcoinPaySelector.waitFor({ state: 'visible', timeout: 10000 });
-    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -324,6 +323,8 @@ export class BitcoinPaymentPage extends BasePage {
    */
   async toggleHelpSection(): Promise<void> {
     await this.helpToggleButton.click();
+    // Wait for help section to toggle visibility
+    // JUSTIFICATION: CSS animation for accordion expand/collapse
     await this.page.waitForTimeout(300);
   }
 
@@ -392,7 +393,8 @@ export class BitcoinPaymentPage extends BasePage {
    */
   async copyAddress(): Promise<void> {
     await this.copyAddressButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for the button to change to "Copied" state
+    await this.page.getByRole('button', { name: /address copied/i }).waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
   }
 
   /**
@@ -400,7 +402,8 @@ export class BitcoinPaymentPage extends BasePage {
    */
   async copyAmount(): Promise<void> {
     await this.copyAmountButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for the button to change to "Copied" state
+    await this.page.getByRole('button', { name: /amount copied/i }).waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
   }
 
   /**

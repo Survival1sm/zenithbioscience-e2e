@@ -110,12 +110,20 @@ test.describe('Checkout Cart Summary Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product1.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     await productDetailPage.gotoProduct(product2.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart and capture data
     await cartPage.goto();
@@ -423,9 +431,9 @@ test.describe('Checkout Cart Summary Consistency (Property Tests)', () => {
       if (matchingCheckoutItem && matchingCheckoutItem.price > 0) {
         // Checkout shows price × quantity as the line item total
         const expectedTotal = cartItem.price * cartItem.quantity;
-        // Allow 20% tolerance for price differences (tax, rounding, etc.)
-        const tolerance = expectedTotal * 0.2;
-        expect(Math.abs(matchingCheckoutItem.price - expectedTotal)).toBeLessThan(tolerance + 1);
+        // Allow 5% tolerance for price differences (rounding, etc.)
+        // Using toBeCloseTo with 2 decimal places for currency precision
+        expect(matchingCheckoutItem.price).toBeCloseTo(expectedTotal, 2);
         matchedItems++;
       }
     }
@@ -490,11 +498,11 @@ test.describe('Checkout Cart Summary Consistency (Property Tests)', () => {
     if (checkoutTotals.tax === 0 && checkoutTotals.total > checkoutTotals.subtotal + checkoutTotals.shipping) {
       // Tax wasn't parsed - just verify total is reasonable
       expect(checkoutTotals.total).toBeGreaterThanOrEqual(checkoutTotals.subtotal);
-      expect(checkoutTotals.total).toBeLessThanOrEqual(checkoutTotals.subtotal * 1.2); // Max 20% tax
+      expect(checkoutTotals.total).toBeLessThanOrEqual(checkoutTotals.subtotal * 1.05); // Max 5% tax tolerance
     } else {
-      // Verify total matches calculation (allow 10% tolerance for rounding/tax variations)
-      const tolerance = Math.max(expectedTotal * 0.1, 1);
-      expect(Math.abs(checkoutTotals.total - expectedTotal)).toBeLessThan(tolerance);
+      // Verify total matches calculation (allow 5% tolerance for rounding/tax variations)
+      // Using toBeCloseTo with 2 decimal places for currency precision
+      expect(checkoutTotals.total).toBeCloseTo(expectedTotal, 2);
     }
   });
 
@@ -621,7 +629,11 @@ test.describe('Checkout Cart Summary Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();

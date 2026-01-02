@@ -316,39 +316,33 @@ export class CheckoutPage extends BasePage {
   async proceedToPayment(): Promise<void> {
     await this.acknowledgeResearchUse();
     
-    // Wait for button to be enabled
+    // Wait for button to be visible and enabled
     await this.continueToPaymentButton.waitFor({ state: 'visible', timeout: 10000 });
     
-    // Wait a bit for form validation
-    await this.page.waitForTimeout(500);
-    
-    // Check if button is enabled
-    const isEnabled = await this.continueToPaymentButton.isEnabled();
-    if (!isEnabled) {
-      // Try to wait for it to become enabled
-      await this.page.waitForTimeout(1000);
-    }
+    // Wait for button to become enabled (form validation complete)
+    await expect(this.continueToPaymentButton).toBeEnabled({ timeout: 5000 }).catch(() => {});
     
     await this.continueToPaymentButton.click();
     
     // Handle address verification dialog if it appears
-    await this.page.waitForTimeout(1000);
     const useOriginalButton = this.page.getByRole('button', { name: /use original|use my address/i });
     const useVerifiedButton = this.page.getByRole('button', { name: /use verified|use suggested/i });
     
-    // Check if verification dialog appeared
-    if (await useOriginalButton.isVisible({ timeout: 2000 }).catch(() => false)) {
+    // Check if verification dialog appeared (with reasonable timeout)
+    if (await useOriginalButton.isVisible({ timeout: 3000 }).catch(() => false)) {
       // Click "Use Original" to proceed with the entered address
       await useOriginalButton.click();
-      await this.page.waitForTimeout(1000);
+      // Wait for dialog to close
+      await useOriginalButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     } else if (await useVerifiedButton.isVisible({ timeout: 500 }).catch(() => false)) {
       // Click "Use Verified" if that's the option
       await useVerifiedButton.click();
-      await this.page.waitForTimeout(1000);
+      // Wait for dialog to close
+      await useVerifiedButton.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
     
-    // Wait for payment step to load
-    await this.page.waitForTimeout(1000);
+    // Wait for payment step to load by checking for payment method elements
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   // ==================== Payment Method Methods ====================
@@ -358,28 +352,20 @@ export class CheckoutPage extends BasePage {
    * Uses retry logic to handle timing issues where payment methods may still be loading
    */
   async arePaymentMethodsAvailable(): Promise<boolean> {
-    // Retry up to 5 times with 1 second delay to handle timing issues
-    for (let attempt = 0; attempt < 5; attempt++) {
-      // Check for the "No payment methods" error message
-      const noMethodsError = this.page.locator('text=No payment methods are currently available');
-      const loadError = this.page.locator('text=Unable to load payment methods');
+    // Check for the "No payment methods" error message
+    const noMethodsError = this.page.locator('text=No payment methods are currently available');
+    const loadError = this.page.locator('text=Unable to load payment methods');
+    
+    const hasNoMethodsError = await noMethodsError.isVisible({ timeout: 1000 }).catch(() => false);
+    const hasLoadError = await loadError.isVisible({ timeout: 1000 }).catch(() => false);
+    
+    if (!hasNoMethodsError && !hasLoadError) {
+      // Also verify that at least one payment method option is visible
+      const paymentOptions = this.page.locator('[data-testid="payment-method-option"], [role="radio"][name*="payment"], input[type="radio"][name*="payment"]');
+      const hasPaymentOptions = await paymentOptions.first().isVisible({ timeout: 1000 }).catch(() => false);
       
-      const hasNoMethodsError = await noMethodsError.isVisible({ timeout: 1000 }).catch(() => false);
-      const hasLoadError = await loadError.isVisible({ timeout: 1000 }).catch(() => false);
-      
-      if (!hasNoMethodsError && !hasLoadError) {
-        // Also verify that at least one payment method option is visible
-        const paymentOptions = this.page.locator('[data-testid="payment-method-option"], [role="radio"][name*="payment"], input[type="radio"][name*="payment"]');
-        const hasPaymentOptions = await paymentOptions.first().isVisible({ timeout: 1000 }).catch(() => false);
-        
-        if (hasPaymentOptions) {
-          return true;
-        }
-      }
-      
-      // Wait before retry
-      if (attempt < 4) {
-        await this.page.waitForTimeout(1000);
+      if (hasPaymentOptions) {
+        return true;
       }
     }
     
@@ -391,32 +377,30 @@ export class CheckoutPage extends BasePage {
    * Throws an error if payment methods don't load within timeout
    */
   async waitForPaymentMethods(timeoutMs: number = 15000): Promise<void> {
-    const startTime = Date.now();
+    // Wait for payment options to appear using Playwright's built-in retry
+    const paymentOptions = this.page.locator('[data-testid="payment-method-option"], [role="radio"][name*="payment"], input[type="radio"][name*="payment"]');
     
-    while (Date.now() - startTime < timeoutMs) {
-      const available = await this.arePaymentMethodsAvailable();
-      if (available) {
-        return;
+    try {
+      await paymentOptions.first().waitFor({ state: 'visible', timeout: timeoutMs });
+      return;
+    } catch {
+      // If we get here, payment methods didn't load - capture diagnostic info
+      const noMethodsError = this.page.locator('text=No payment methods are currently available');
+      const loadError = this.page.locator('text=Unable to load payment methods');
+      
+      const hasNoMethodsError = await noMethodsError.isVisible({ timeout: 500 }).catch(() => false);
+      const hasLoadError = await loadError.isVisible({ timeout: 500 }).catch(() => false);
+      
+      let errorMessage = 'Payment methods did not load within timeout.';
+      if (hasNoMethodsError) {
+        errorMessage += ' Backend returned no payment methods - check payment configuration.';
       }
-      await this.page.waitForTimeout(500);
+      if (hasLoadError) {
+        errorMessage += ' Failed to load payment methods from backend - check API connectivity.';
+      }
+      
+      throw new Error(errorMessage);
     }
-    
-    // If we get here, payment methods didn't load - capture diagnostic info
-    const noMethodsError = this.page.locator('text=No payment methods are currently available');
-    const loadError = this.page.locator('text=Unable to load payment methods');
-    
-    const hasNoMethodsError = await noMethodsError.isVisible({ timeout: 500 }).catch(() => false);
-    const hasLoadError = await loadError.isVisible({ timeout: 500 }).catch(() => false);
-    
-    let errorMessage = 'Payment methods did not load within timeout.';
-    if (hasNoMethodsError) {
-      errorMessage += ' Backend returned no payment methods - check payment configuration.';
-    }
-    if (hasLoadError) {
-      errorMessage += ' Failed to load payment methods from backend - check API connectivity.';
-    }
-    
-    throw new Error(errorMessage);
   }
 
   /**
@@ -425,7 +409,8 @@ export class CheckoutPage extends BasePage {
   async selectPaymentMethodOnly(type: PaymentMethodType): Promise<void> {
     const option = this.getPaymentMethodOption(type);
     await option.click();
-    await this.page.waitForTimeout(500);
+    // Wait for the payment option to be checked/selected
+    await expect(option).toBeChecked({ timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -434,25 +419,15 @@ export class CheckoutPage extends BasePage {
   async selectPaymentMethod(type: PaymentMethodType): Promise<void> {
     // Wait for order total to be non-zero before selecting payment method
     // This ensures the checkout preview has loaded
-    let totalLoaded = false;
-    for (let i = 0; i < 30; i++) {
-      const totalRow = this.page.locator('li').filter({ hasText: /^Total/ });
-      const totalHeading = totalRow.locator('h6');
+    const totalRow = this.page.locator('li').filter({ hasText: /^Total/ });
+    const totalHeading = totalRow.locator('h6');
+    
+    // Use expect with polling to wait for total to be non-zero
+    await expect(async () => {
       const totalText = await totalHeading.textContent().catch(() => null);
       const total = parseFloat(totalText?.replace(/[^0-9.]/g, '') || '0');
-      if (total > 0) {
-        totalLoaded = true;
-        // Wait a bit more for the UI to stabilize after total loads
-        await this.page.waitForTimeout(500);
-        break;
-      }
-      await this.page.waitForTimeout(500);
-    }
-    
-    // If total still not loaded after 15 seconds, throw an error
-    if (!totalLoaded) {
-      throw new Error('Checkout preview failed to load - order total is still $0.00 after 15 seconds');
-    }
+      expect(total).toBeGreaterThan(0);
+    }).toPass({ timeout: 15000 });
     
     await this.selectPaymentMethodOnly(type);
     
@@ -461,7 +436,8 @@ export class CheckoutPage extends BasePage {
       // Wait for the CashApp form to load and show the continue button
       await this.cashAppContinueButton.waitFor({ state: 'visible', timeout: 15000 });
       await this.cashAppContinueButton.click();
-      await this.page.waitForTimeout(1000);
+      // Wait for review step to load
+      await this.completeOrderButton.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
     }
   }
 
@@ -502,12 +478,14 @@ export class CheckoutPage extends BasePage {
   async completeOrder(): Promise<void> {
     // First accept RUO consent
     await this.acceptRuoConsent();
-    await this.page.waitForTimeout(500);
+    // Wait for checkbox to be checked
+    const checkbox = this.page.getByRole('checkbox').filter({ hasText: /21 or older|research use only/i });
+    await expect(checkbox).toBeChecked({ timeout: 3000 }).catch(() => {});
     
     // Then click Complete Order
     await this.completeOrderButton.click();
-    // Wait for order processing
-    await this.page.waitForTimeout(2000);
+    // Wait for order processing by checking for navigation or confirmation
+    await this.page.waitForLoadState('domcontentloaded');
   }
 
   /**
@@ -542,7 +520,13 @@ export class CheckoutPage extends BasePage {
   async applyCoupon(code: string): Promise<void> {
     await this.couponInput.fill(code);
     await this.applyCouponButton.click();
-    await this.page.waitForTimeout(1000);
+    // Wait for coupon validation response by checking for success or error alert
+    const successAlert = this.page.locator('.MuiAlert-standardSuccess');
+    const errorAlert = this.page.locator('.MuiAlert-standardError');
+    await Promise.race([
+      successAlert.waitFor({ state: 'visible', timeout: 10000 }),
+      errorAlert.waitFor({ state: 'visible', timeout: 10000 }),
+    ]).catch(() => {});
   }
 
   /**
@@ -570,8 +554,8 @@ export class CheckoutPage extends BasePage {
     await this.selectPaymentMethod(paymentMethod);
     
     // For CashApp, the form auto-proceeds to review
-    // For other methods, may need additional steps
-    await this.page.waitForTimeout(1000);
+    // Wait for review step to be ready
+    await this.completeOrderButton.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
 
     // Step 3: Complete order
     await this.completeOrder();

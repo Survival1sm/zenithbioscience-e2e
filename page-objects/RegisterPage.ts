@@ -62,8 +62,12 @@ export class RegisterPage extends BasePage {
     return this.page.getByRole('checkbox', { name: /I agree to the Terms and Conditions/i });
   }
 
+  /**
+   * Get the error alert container
+   * Uses MUI Alert class to avoid matching Next.js route announcer
+   */
   get errorAlert(): Locator {
-    return this.page.getByRole('alert');
+    return this.page.locator('.MuiAlert-root[role="alert"]');
   }
 
   get googleLoginButton(): Locator {
@@ -76,6 +80,43 @@ export class RegisterPage extends BasePage {
 
   get termsLink(): Locator {
     return this.page.getByRole('link', { name: 'Terms and Conditions' });
+  }
+
+  // ==================== Field Error Locators ====================
+
+  /**
+   * Email field validation error message
+   * Uses MUI FormHelperText with error state
+   */
+  get emailError(): Locator {
+    // Look for helper text near the email input with error state
+    return this.page.locator('#email-helper-text, [id*="email"][id*="helper"], .MuiFormHelperText-root.Mui-error').first();
+  }
+
+  /**
+   * Password field validation error message
+   * Uses MUI FormHelperText with error state
+   */
+  get passwordError(): Locator {
+    // Look for helper text near the password input with error state
+    return this.page.locator('#password-helper-text, [id*="password"][id*="helper"]:not([id*="confirm"]), .MuiFormHelperText-root.Mui-error').first();
+  }
+
+  /**
+   * Confirm password field validation error message
+   * Uses MUI FormHelperText with error state
+   */
+  get confirmPasswordError(): Locator {
+    // Look for helper text near the confirm password input with error state
+    return this.page.locator('#confirmPassword-helper-text, [id*="confirm"][id*="helper"], .MuiFormHelperText-root.Mui-error').first();
+  }
+
+  /**
+   * General error message (for form-level errors like duplicate email)
+   * Alias for errorAlert for consistency with design doc
+   */
+  get errorMessage(): Locator {
+    return this.errorAlert;
   }
 
   // ==================== Actions ====================

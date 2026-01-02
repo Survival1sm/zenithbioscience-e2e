@@ -41,8 +41,11 @@ test.describe('Add to Cart', () => {
     // Add product to cart
     await productDetailPage.addToCart();
 
-    // Wait for snackbar notification
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Navigate to cart and verify item was added
     await cartPage.goto();
@@ -66,8 +69,11 @@ test.describe('Add to Cart', () => {
     // Add product to cart
     await productDetailPage.addToCart();
 
-    // Wait for cart to update
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // On mobile, the cart badge is not visible in the header - it's in the drawer menu
     // Instead, verify by navigating to cart page
@@ -106,8 +112,11 @@ test.describe('Add to Cart', () => {
     // Add to cart
     await productDetailPage.addToCart();
 
-    // Wait for cart update
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Navigate to cart and verify quantity
     await cartPage.goto();

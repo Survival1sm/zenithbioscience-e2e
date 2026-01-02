@@ -40,16 +40,13 @@ test.describe('Login Page', () => {
   test('should show error for invalid credentials', async () => {
     await loginPage.login('invalid@example.com', 'WrongPassword123!');
 
-    // Wait for error response - the backend may take a moment
-    // Look for any error indication on the page
-    try {
-      await loginPage.page.getByRole('alert').waitFor({ state: 'visible', timeout: 10000 });
-      const hasError = await loginPage.hasError();
-      expect(hasError).toBeTruthy();
-    } catch {
-      // If no alert, check if we're still on login page (login failed)
-      await expect(loginPage.page).toHaveURL(/login/);
-    }
+    // Wait for error alert to be visible - this verifies the error is actually displayed
+    await expect(loginPage.errorAlert).toBeVisible({ timeout: 10000 });
+
+    // Verify the error message contains expected text about invalid credentials
+    const errorText = await loginPage.getErrorMessage();
+    expect(errorText).not.toBeNull();
+    expect(errorText!.toLowerCase()).toMatch(/invalid|incorrect|wrong|failed|error|credentials/i);
   });
 
   test('should navigate to forgot password page', async ({ page }) => {
@@ -96,14 +93,28 @@ test.describe('Login Page', () => {
 
     await loginPage.login(unverified.email, unverified.password);
 
-    // Should show error or stay on login page
-    await page.waitForTimeout(3000);
+    // Wait for either error alert or redirect
+    await page.waitForTimeout(2000);
 
-    // Either shows error or stays on login page
-    const hasError = await loginPage.hasError();
-    const stillOnLogin = page.url().includes('/login');
-
-    expect(hasError || stillOnLogin).toBeTruthy();
+    // Check if we're still on the login page (login was rejected)
+    const currentUrl = page.url();
+    const stillOnLogin = currentUrl.includes('/login');
+    
+    // Check for error alert
+    const errorAlert = page.locator('.MuiAlert-root[role="alert"]');
+    const hasError = await errorAlert.isVisible().catch(() => false);
+    
+    // Either we should see an error OR still be on the login page
+    // Unverified users should not be able to log in successfully
+    if (hasError) {
+      const errorText = await errorAlert.textContent();
+      expect(errorText).not.toBeNull();
+      // Error should indicate account issue (unverified, not activated, etc.)
+      expect(errorText!.toLowerCase()).toMatch(/verify|activate|confirm|invalid|error|not.*active|failed/i);
+    } else {
+      // If no error shown, we should still be on login page (login blocked)
+      expect(stillOnLogin).toBeTruthy();
+    }
   });
 
   test('should show error for wrong password with valid email', async () => {
@@ -112,14 +123,12 @@ test.describe('Login Page', () => {
 
     await loginPage.login(customer.email, 'WrongPassword999!');
 
-    // Wait for error response
-    try {
-      await loginPage.page.getByRole('alert').waitFor({ state: 'visible', timeout: 10000 });
-      const hasError = await loginPage.hasError();
-      expect(hasError).toBeTruthy();
-    } catch {
-      // If no alert, check if we're still on login page
-      await expect(loginPage.page).toHaveURL(/login/);
-    }
+    // Wait for error alert to be visible - wrong password should show an error
+    await expect(loginPage.errorAlert).toBeVisible({ timeout: 10000 });
+
+    // Verify the error message contains expected text about invalid credentials
+    const errorText = await loginPage.getErrorMessage();
+    expect(errorText).not.toBeNull();
+    expect(errorText!.toLowerCase()).toMatch(/invalid|incorrect|wrong|failed|error|credentials|password/i);
   });
 });

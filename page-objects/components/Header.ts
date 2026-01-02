@@ -210,9 +210,6 @@ export class Header {
    */
   async getCartItemCount(): Promise<number> {
     try {
-      // Wait a moment for React state to update
-      await this.page.waitForTimeout(500);
-      
       // First try to find the mobile navigation cart button with aria-label containing item count
       // The mobile nav has aria-label like "Navigate to cart page with X items"
       const mobileCartButton = this.page.locator('[aria-label*="Navigate to cart page with"]');

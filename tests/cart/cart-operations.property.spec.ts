@@ -40,7 +40,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product1.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // On mobile, the cart badge is not visible in the header
     // Instead, verify by going to cart page
@@ -58,7 +62,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
       await productDetailPage.gotoProduct(product2.slug);
       await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
       await productDetailPage.addToCart();
-      await page.waitForTimeout(1000);
+      // Wait for cart update - either snackbar notification or network idle
+      await Promise.race([
+        page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+        page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+      ]);
       
       // Verify cart now has 2 items
       await cartPage.goto();
@@ -75,7 +83,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
       await productDetailPage.gotoProduct(product2.slug);
       await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
       await productDetailPage.addToCart();
-      await page.waitForTimeout(1000);
+      // Wait for cart update - either snackbar notification or network idle
+      await Promise.race([
+        page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+        page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+      ]);
 
       // Check header badge shows 2
       badgeCount = await header.getCartItemCount();
@@ -100,7 +112,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();
@@ -129,12 +145,20 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product1.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     await productDetailPage.gotoProduct(product2.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();
@@ -161,7 +185,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();
@@ -172,7 +200,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
 
     // Remove the item
     await cartPage.removeItem(product.name);
-    await page.waitForTimeout(1000);
+    // Wait for cart update after removal
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Verify cart is now empty
     await cartPage.assertCartEmpty();
@@ -189,7 +221,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();
@@ -202,7 +238,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
 
     // Update quantity to 3
     await cartPage.updateItemQuantity(product.name, 3);
-    await page.waitForTimeout(1000);
+    // Wait for cart update after quantity change
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Get updated item data
     const updatedItems = await cartPage.getCartItems();
@@ -225,7 +265,11 @@ test.describe('Cart Operations Consistency (Property Tests)', () => {
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Go to cart
     await cartPage.goto();

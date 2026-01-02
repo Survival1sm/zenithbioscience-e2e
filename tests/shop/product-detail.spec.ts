@@ -39,9 +39,6 @@ test.describe('Product Detail', () => {
     const product = getInStockProduct();
     await productDetailPage.gotoProduct(product.slug);
 
-    // Wait for the page to fully load
-    await productDetailPage.page.waitForLoadState('networkidle');
-    
     // Wait for product name to be visible first (indicates page loaded)
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     
@@ -53,8 +50,6 @@ test.describe('Product Detail', () => {
     const product = getInStockProduct();
     await productDetailPage.gotoProduct(product.slug);
 
-    await productDetailPage.page.waitForLoadState('networkidle');
-    
     // Wait for product name to be visible first
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     
@@ -74,7 +69,8 @@ test.describe('Product Detail', () => {
     const product = getOutOfStockProduct();
     await productDetailPage.gotoProduct(product.slug);
 
-    await productDetailPage.page.waitForLoadState('networkidle');
+    // Wait for product name to be visible first
+    await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     
     // For out-of-stock products, add to cart should not be visible
     const addToCartVisible = await productDetailPage.addToCartButton.isVisible({ timeout: 3000 }).catch(() => false);
@@ -85,7 +81,6 @@ test.describe('Product Detail', () => {
     const product = getInStockProduct();
     await productDetailPage.gotoProduct(product.slug);
 
-    await productDetailPage.page.waitForLoadState('networkidle');
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     
     // Wait for quantity input to be visible

@@ -558,14 +558,6 @@ test.describe('Reset Password', () => {
     // Button state after clearing (should be disabled again)
     const afterClearEnabled = await resetPasswordPage.isSubmitEnabled();
     expect(afterClearEnabled).toBeFalsy(); // Button should be disabled after clearing
-
-    // Log the states for debugging
-    console.log('Button states:', {
-      initial: initialEnabled,
-      partial: partialEnabled,
-      complete: completeEnabled,
-      afterClear: afterClearEnabled,
-    });
   });
 
   /**

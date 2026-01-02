@@ -31,8 +31,8 @@ test.describe('Profile Page', () => {
     await loginPage.login(testUser.email, testUser.password);
     await loginPage.waitForLoginComplete();
     
-    // Additional wait for session to be fully established (helps with Firefox)
-    await page.waitForTimeout(500);
+    // Wait for session to be fully established
+    await page.waitForLoadState('networkidle').catch(() => {});
 
     // Navigate to profile page
     await profilePage.goto();
@@ -176,9 +176,6 @@ test.describe('Profile Page', () => {
 
     // Try to save - HTML5 validation should prevent submission
     await profilePage.clickSave();
-
-    // Wait a moment for any validation to appear
-    await page.waitForTimeout(500);
 
     // Check for HTML5 validation - the form should not submit with empty required fields
     // The browser will show native validation messages

@@ -341,7 +341,8 @@ export class AddressBookPage extends BasePage {
     // Save the changes
     await this.saveButton.click();
     await this.waitForDialogClose();
-    await this.page.waitForTimeout(500);
+    // Wait for address list to update after save
+    await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -362,8 +363,10 @@ export class AddressBookPage extends BasePage {
     const deleteButton = cardActions.locator('.MuiIconButton-root').nth(1);
     await deleteButton.click();
 
-    // Wait for the address to be removed
-    await this.page.waitForTimeout(1000);
+    // Wait for the address card to be removed from DOM
+    await card.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
+    // Also wait for any loading to complete
+    await this.loadingSpinner.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
   }
 
   /**
@@ -378,7 +381,9 @@ export class AddressBookPage extends BasePage {
     const setDefaultButton = card.getByRole('button', { name: /set as default/i });
     if (await setDefaultButton.isVisible()) {
       await setDefaultButton.click();
-      await this.page.waitForTimeout(500);
+      // Wait for the default chip to appear on this card
+      const defaultChip = card.locator('.MuiChip-root:has-text("Default")');
+      await defaultChip.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     }
   }
 
@@ -394,7 +399,9 @@ export class AddressBookPage extends BasePage {
     const setDefaultButton = card.getByRole('button', { name: /set as default/i });
     if (await setDefaultButton.isVisible()) {
       await setDefaultButton.click();
-      await this.page.waitForTimeout(500);
+      // Wait for the default chip to appear on this card
+      const defaultChip = card.locator('.MuiChip-root:has-text("Default")');
+      await defaultChip.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
     }
   }
 

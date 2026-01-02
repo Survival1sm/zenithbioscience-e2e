@@ -976,6 +976,314 @@ function createTestOrders(): TestOrder[] {
       orderDate: oneWeekAgo,
       trackingNumber: 'E2E987654321',
     },
+    // Order 28: COMPLETED - for order history tests (completed/fulfilled order)
+    {
+      id: 'e2e-order-028',
+      orderNumber: generateOrderNumber(28),
+      userId: 'e2e-account-orders-001',
+      customerEmail: 'account-orders@test.zenithbioscience.com',
+      customerName: 'Account Orders',
+      items: [
+        {
+          productId: 'e2e-prod-002',
+          productName: 'Test Blend Beta',
+          productSku: 'E2E-BLEND-002',
+          productDose: '10mg',
+          quantity: 2,
+          unitPrice: 129.99,
+          totalPrice: 259.98,
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      status: 'DELIVERED',
+      paymentStatus: 'COMPLETED',
+      paymentMethod: 'ACH',
+      shippingMethod: 'STANDARD',
+      subtotal: 259.98,
+      tax: 21.45,
+      shippingCost: 9.99,
+      total: 291.42,
+      orderDate: oneWeekAgo,
+      trackingNumber: 'E2ECOMPLETE001',
+    },
+    // Order 29: PROCESSING - for order history tests (active order in processing)
+    {
+      id: 'e2e-order-029',
+      orderNumber: generateOrderNumber(29),
+      userId: 'e2e-account-orders-001',
+      customerEmail: 'account-orders@test.zenithbioscience.com',
+      customerName: 'Account Orders',
+      items: [
+        {
+          productId: 'e2e-prod-001',
+          productName: 'Test Peptide Alpha',
+          productSku: 'E2E-PEPTIDE-001',
+          productDose: '5mg',
+          quantity: 3,
+          unitPrice: 99.99,
+          totalPrice: 299.97,
+          batchNumber: 'BATCH-E2E-029',
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      status: 'PROCESSING',
+      paymentStatus: 'COMPLETED',
+      paymentMethod: 'ZELLE',
+      shippingMethod: 'EXPRESS',
+      subtotal: 299.97,
+      tax: 24.75,
+      shippingCost: 14.99,
+      total: 339.71,
+      orderDate: twoDaysAgo,
+    },
+    // Order 30: CANCELLED - for order history tests (cancelled order)
+    {
+      id: 'e2e-order-030',
+      orderNumber: generateOrderNumber(30),
+      userId: 'e2e-account-orders-001',
+      customerEmail: 'account-orders@test.zenithbioscience.com',
+      customerName: 'Account Orders',
+      items: [
+        {
+          productId: 'e2e-prod-002',
+          productName: 'Test Blend Beta',
+          productSku: 'E2E-BLEND-002',
+          productDose: '10mg',
+          quantity: 1,
+          unitPrice: 129.99,
+          totalPrice: 129.99,
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Orders',
+        addressLine1: '123 Test Street',
+        city: 'Denver',
+        state: 'CO',
+        postalCode: '80202',
+        country: 'US',
+        phoneNumber: '+13031234567',
+      },
+      status: 'CANCELLED',
+      paymentStatus: 'REFUNDED',
+      paymentMethod: 'CASHAPP',
+      shippingMethod: 'STANDARD',
+      subtotal: 129.99,
+      tax: 10.73,
+      shippingCost: 9.99,
+      total: 150.71,
+      orderDate: fiveDaysAgo,
+      notes: 'Customer requested cancellation',
+    },
+    // ============ ORDERS FOR accountCoa USER (coa-submission.spec.ts) ============
+    // Order 31: DELIVERED - for COA submission tests
+    {
+      id: 'e2e-order-031',
+      orderNumber: generateOrderNumber(31),
+      userId: 'e2e-account-coa-001',
+      customerEmail: 'account-coa@test.zenithbioscience.com',
+      customerName: 'Account Coa',
+      items: [
+        {
+          productId: 'e2e-prod-001',
+          productName: 'Test Peptide Alpha',
+          productSku: 'E2E-PEPTIDE-001',
+          productDose: '5mg',
+          quantity: 2,
+          unitPrice: 99.99,
+          totalPrice: 199.98,
+          batchNumber: 'BATCH-E2E-031',
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      status: 'DELIVERED',
+      paymentStatus: 'COMPLETED',
+      paymentMethod: 'BITCOIN',
+      shippingMethod: 'EXPRESS',
+      subtotal: 199.98,
+      tax: 16.50,
+      shippingCost: 14.99,
+      total: 231.47,
+      orderDate: oneWeekAgo,
+      trackingNumber: 'E2ECOA001TRACK',
+    },
+    // Order 32: DELIVERED - for COA submission tests
+    {
+      id: 'e2e-order-032',
+      orderNumber: generateOrderNumber(32),
+      userId: 'e2e-account-coa-001',
+      customerEmail: 'account-coa@test.zenithbioscience.com',
+      customerName: 'Account Coa',
+      items: [
+        {
+          productId: 'e2e-prod-002',
+          productName: 'Test Blend Beta',
+          productSku: 'E2E-BLEND-002',
+          productDose: '10mg',
+          quantity: 1,
+          unitPrice: 129.99,
+          totalPrice: 129.99,
+          batchNumber: 'BATCH-E2E-032',
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      status: 'DELIVERED',
+      paymentStatus: 'COMPLETED',
+      paymentMethod: 'ZELLE',
+      shippingMethod: 'STANDARD',
+      subtotal: 129.99,
+      tax: 10.73,
+      shippingCost: 9.99,
+      total: 150.71,
+      orderDate: oneWeekAgo,
+      trackingNumber: 'E2ECOA002TRACK',
+    },
+    // Order 33: COMPLETED - for COA submission tests
+    {
+      id: 'e2e-order-033',
+      orderNumber: generateOrderNumber(33),
+      userId: 'e2e-account-coa-001',
+      customerEmail: 'account-coa@test.zenithbioscience.com',
+      customerName: 'Account Coa',
+      items: [
+        {
+          productId: 'e2e-prod-001',
+          productName: 'Test Peptide Alpha',
+          productSku: 'E2E-PEPTIDE-001',
+          productDose: '5mg',
+          quantity: 1,
+          unitPrice: 99.99,
+          totalPrice: 99.99,
+          batchNumber: 'BATCH-E2E-033',
+        },
+        {
+          productId: 'e2e-prod-002',
+          productName: 'Test Blend Beta',
+          productSku: 'E2E-BLEND-002',
+          productDose: '10mg',
+          quantity: 1,
+          unitPrice: 129.99,
+          totalPrice: 129.99,
+          batchNumber: 'BATCH-E2E-033B',
+        },
+      ],
+      shippingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      billingAddress: {
+        firstName: 'Account',
+        lastName: 'Coa',
+        addressLine1: '456 Research Blvd',
+        city: 'Boston',
+        state: 'MA',
+        postalCode: '02101',
+        country: 'US',
+        phoneNumber: '+16171234567',
+      },
+      status: 'DELIVERED',
+      paymentStatus: 'COMPLETED',
+      paymentMethod: 'CASHAPP',
+      shippingMethod: 'OVERNIGHT',
+      subtotal: 229.98,
+      tax: 18.97,
+      shippingCost: 24.99,
+      total: 273.94,
+      orderDate: oneWeekAgo,
+      trackingNumber: 'E2ECOA003TRACK',
+    },
   ];
 }
 
@@ -2124,4 +2432,48 @@ export function getBrowserLoginAfterActivationKeyAndUser(browserName: string): {
     console.log(`[getBrowserLoginAfterActivationKeyAndUser] Using Chromium user: pendingActivation2`);
     return { activationKey: getPendingActivationUser2().activationKey!, user: getPendingActivationUser2() };
   }
+}
+
+/**
+ * Get orders for the accountOrders test user
+ * These are orders 24-30 which are dedicated for order-history.spec.ts tests
+ * @returns Array of TestOrder objects for the accountOrders user
+ */
+export function getAccountOrdersUserOrders(): TestOrder[] {
+  const accountOrdersUserId = isolatedTestUsers.accountOrders.id;
+  return defaultFixtures.orders.filter(order => order.userId === accountOrdersUserId);
+}
+
+/**
+ * Seed order history data for the accountOrders test user
+ * This function seeds orders 24-30 which are dedicated for order-history.spec.ts tests
+ * 
+ * Usage:
+ * ```typescript
+ * import { seedOrderHistoryData } from '../fixtures/defaultFixtures';
+ * import { getDataSeeder } from '../fixtures/DataSeeder';
+ * 
+ * // In test setup or global setup
+ * const seeder = getDataSeeder();
+ * await seeder.connect();
+ * await seedOrderHistoryData(seeder);
+ * ```
+ * 
+ * @param seeder - DataSeeder instance (must be connected)
+ * @throws Error if seeding fails
+ */
+export async function seedOrderHistoryData(seeder: { seedOrders: (orders: TestOrder[]) => Promise<void> }): Promise<void> {
+  const accountOrdersOrders = getAccountOrdersUserOrders();
+  
+  if (accountOrdersOrders.length === 0) {
+    console.warn('[seedOrderHistoryData] No orders found for accountOrders user');
+    return;
+  }
+  
+  console.log(`[seedOrderHistoryData] Seeding ${accountOrdersOrders.length} orders for accountOrders user...`);
+  
+  await seeder.seedOrders(accountOrdersOrders);
+  
+  console.log(`[seedOrderHistoryData] Successfully seeded ${accountOrdersOrders.length} orders for order history tests`);
+  console.log('[seedOrderHistoryData] Order statuses:', accountOrdersOrders.map(o => `${o.orderNumber}: ${o.status}`).join(', '));
 }

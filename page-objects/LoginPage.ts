@@ -49,9 +49,10 @@ export class LoginPage extends BasePage {
 
   /**
    * Get the error alert container
+   * Uses MUI Alert class to avoid matching Next.js route announcer
    */
   get errorAlert(): Locator {
-    return this.page.getByRole('alert');
+    return this.page.locator('.MuiAlert-root[role="alert"]');
   }
 
   /**

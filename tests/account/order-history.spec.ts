@@ -44,8 +44,8 @@ test.describe('Order History Page', () => {
     // This test specifically verifies that the accountOrders user sees their seeded orders
     // The accountOrders user should have 4 orders (orders 24-27) seeded in global-setup
     
-    // Wait for orders to load
-    await orderHistoryPage.page.waitForTimeout(1000);
+    // Wait for orders to load by checking loading skeleton is hidden
+    await orderHistoryPage.loadingSkeleton.first().waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {});
     
     // Check if orders exist or empty state is shown
     const isEmpty = await orderHistoryPage.isEmpty();
@@ -71,15 +71,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should display order status tabs', async () => {
-    // Tabs are only shown when there are orders
-    const isEmpty = await orderHistoryPage.isEmpty();
-    
-    if (isEmpty) {
-      // When no orders, tabs should not be visible
-      test.skip();
-      return;
-    }
-    
+    // accountOrders user has seeded orders (24-30), so tabs should be visible
     // Verify all tabs are visible
     await orderHistoryPage.assertTabsDisplayed();
     await expect(orderHistoryPage.allOrdersTab).toBeVisible();
@@ -88,13 +80,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should filter orders by All Orders tab', async () => {
-    // Tabs are only shown when there are orders
-    const isEmpty = await orderHistoryPage.isEmpty();
-    if (isEmpty) {
-      test.skip();
-      return;
-    }
-    
+    // accountOrders user has seeded orders (24-30), so tabs should be visible
     // Click on All Orders tab
     await orderHistoryPage.filterByStatus('all');
 
@@ -104,13 +90,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should filter orders by Active Orders tab', async () => {
-    // Tabs are only shown when there are orders
-    const isEmpty = await orderHistoryPage.isEmpty();
-    if (isEmpty) {
-      test.skip();
-      return;
-    }
-    
+    // accountOrders user has seeded orders including active ones (PENDING, CONFIRMED, PROCESSING, SHIPPED)
     // Click on Active Orders tab
     await orderHistoryPage.filterByStatus('active');
 
@@ -118,24 +98,14 @@ test.describe('Order History Page', () => {
     const selectedTab = await orderHistoryPage.getSelectedTab();
     expect(selectedTab).toBe('active');
 
-    // Check for orders or empty state message
+    // accountOrders user has active orders (PENDING: 24, CONFIRMED: 25, SHIPPED: 26, PROCESSING: 29)
+    // Verify active orders are displayed
     const orderCount = await orderHistoryPage.getOrderCount();
-    if (orderCount === 0) {
-      // Should show no active orders message or empty state
-      const noActiveVisible = await orderHistoryPage.noActiveOrdersMessage.isVisible().catch(() => false);
-      const emptyVisible = await orderHistoryPage.emptyStateMessage.isVisible().catch(() => false);
-      expect(noActiveVisible || emptyVisible || orderCount === 0).toBeTruthy();
-    }
+    expect(orderCount).toBeGreaterThan(0);
   });
 
   test('should filter orders by Completed tab', async () => {
-    // Tabs are only shown when there are orders
-    const isEmpty = await orderHistoryPage.isEmpty();
-    if (isEmpty) {
-      test.skip();
-      return;
-    }
-    
+    // accountOrders user has seeded orders including completed ones (DELIVERED, COMPLETED, CANCELLED)
     // Click on Completed tab
     await orderHistoryPage.filterByStatus('completed');
 
@@ -143,26 +113,14 @@ test.describe('Order History Page', () => {
     const selectedTab = await orderHistoryPage.getSelectedTab();
     expect(selectedTab).toBe('completed');
 
-    // Check for orders or empty state message
+    // accountOrders user has completed orders (DELIVERED: 27, COMPLETED: 28, CANCELLED: 30)
+    // Verify completed orders are displayed
     const orderCount = await orderHistoryPage.getOrderCount();
-    if (orderCount === 0) {
-      // Should show no completed orders message or empty state
-      const noCompletedVisible = await orderHistoryPage.noCompletedOrdersMessage.isVisible().catch(() => false);
-      const emptyVisible = await orderHistoryPage.emptyStateMessage.isVisible().catch(() => false);
-      expect(noCompletedVisible || emptyVisible || orderCount === 0).toBeTruthy();
-    }
+    expect(orderCount).toBeGreaterThan(0);
   });
 
   test('should navigate to order details when clicking on an order', async ({ page }) => {
-    // First check if there are any orders
-    const orderCount = await orderHistoryPage.getOrderCount();
-
-    if (orderCount === 0) {
-      // Skip test if no orders exist
-      test.skip();
-      return;
-    }
-
+    // accountOrders user has seeded orders (24-30)
     // Get the first order number
     const orderNumbers = await orderHistoryPage.getOrderNumbers();
     expect(orderNumbers.length).toBeGreaterThan(0);
@@ -177,15 +135,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should display correct order information in details', async ({ page }) => {
-    // First check if there are any orders
-    const orderCount = await orderHistoryPage.getOrderCount();
-
-    if (orderCount === 0) {
-      // Skip test if no orders exist
-      test.skip();
-      return;
-    }
-
+    // accountOrders user has seeded orders (24-30)
     // Get the first order number
     const orderNumbers = await orderHistoryPage.getOrderNumbers();
     expect(orderNumbers.length).toBeGreaterThan(0);
@@ -211,14 +161,10 @@ test.describe('Order History Page', () => {
   });
 
   test('should handle pagination if multiple orders exist', async () => {
+    // accountOrders user has 7 seeded orders (24-30)
     // Get initial order count
     const orderCount = await orderHistoryPage.getOrderCount();
-
-    if (orderCount === 0) {
-      // Skip test if no orders exist
-      test.skip();
-      return;
-    }
+    expect(orderCount).toBeGreaterThan(0);
 
     // Check if pagination controls exist (for data grid)
     const paginationControls = orderHistoryPage.page.locator('.MuiTablePagination-root, .MuiDataGrid-footerContainer');
@@ -228,19 +174,13 @@ test.describe('Order History Page', () => {
       // Verify pagination is functional
       await expect(paginationControls).toBeVisible();
     } else {
-      // If no pagination, all orders should be visible
+      // If no pagination, all orders should be visible (7 orders may not require pagination)
       expect(orderCount).toBeGreaterThan(0);
     }
   });
 
   test('should maintain tab selection after page refresh', async () => {
-    // Tabs are only shown when there are orders
-    const isEmpty = await orderHistoryPage.isEmpty();
-    if (isEmpty) {
-      test.skip();
-      return;
-    }
-    
+    // accountOrders user has seeded orders (24-30), so tabs should be visible
     // Select Active Orders tab
     await orderHistoryPage.filterByStatus('active');
 
@@ -257,15 +197,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should display order date for orders in the list', async () => {
-    // First check if there are any orders
-    const orderCount = await orderHistoryPage.getOrderCount();
-
-    if (orderCount === 0) {
-      // Skip test if no orders exist
-      test.skip();
-      return;
-    }
-
+    // accountOrders user has seeded orders (24-30)
     // Get the first order number
     const orderNumbers = await orderHistoryPage.getOrderNumbers();
     expect(orderNumbers.length).toBeGreaterThan(0);
@@ -283,15 +215,7 @@ test.describe('Order History Page', () => {
   });
 
   test('should display order status for orders in the list', async () => {
-    // First check if there are any orders
-    const orderCount = await orderHistoryPage.getOrderCount();
-
-    if (orderCount === 0) {
-      // Skip test if no orders exist
-      test.skip();
-      return;
-    }
-
+    // accountOrders user has seeded orders (24-30) with various statuses
     // Get the first order number
     const orderNumbers = await orderHistoryPage.getOrderNumbers();
     expect(orderNumbers.length).toBeGreaterThan(0);

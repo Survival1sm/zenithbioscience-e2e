@@ -412,9 +412,7 @@ export class ProfilePage extends BasePage {
       // Loading text may have already disappeared
     }
     
-    // Small delay to ensure React state has updated
-    await this.page.waitForTimeout(500);
-    
+    // Wait for switches to be visible (indicates preferences have loaded)
     await this.emailNotificationsSwitch.waitFor({ state: 'visible', timeout: 5000 });
     await this.smsNotificationsSwitch.waitFor({ state: 'visible', timeout: 5000 });
   }

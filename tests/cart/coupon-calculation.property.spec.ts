@@ -31,7 +31,11 @@ test.describe('Coupon Discount Calculation (Property Tests)', () => {
     await productDetailPage.gotoProduct(productSlug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    await page.waitForTimeout(1000);
+    // Wait for cart update - either snackbar notification or network idle
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
     await cartPage.goto();
     await cartPage.waitForPage();
   }
@@ -155,7 +159,8 @@ test.describe('Coupon Discount Calculation (Property Tests)', () => {
 
     // Remove coupon
     await cartPage.removeCoupon();
-    await page.waitForTimeout(500);
+    // Wait for coupon removal to complete
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Verify coupon is removed
     const stillHasCoupon = await cartPage.hasCouponApplied();
@@ -218,11 +223,13 @@ test.describe('Coupon Discount Calculation (Property Tests)', () => {
 
     // Remove coupon and re-apply to verify idempotency
     await cartPage.removeCoupon();
-    await page.waitForTimeout(500);
+    // Wait for coupon removal to complete
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Re-apply the same coupon
     await cartPage.applyCoupon(coupon.code);
-    await page.waitForTimeout(500);
+    // Wait for coupon application to complete
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Get total after re-application
     const totalAfterReapply = await cartPage.getTotal();

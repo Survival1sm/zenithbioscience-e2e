@@ -417,6 +417,11 @@ async function globalSetup(config: FullConfig): Promise<void> {
     if (accountOrdersUser) {
       emailToFixtureId.set(accountOrdersUser.email, accountOrdersUser.id);
     }
+    // Map accountCoa isolated user (used for coa-submission tests)
+    const accountCoaUser = isolatedUsers.find(u => u.email === 'account-coa@test.zenithbioscience.com');
+    if (accountCoaUser) {
+      emailToFixtureId.set(accountCoaUser.email, accountCoaUser.id);
+    }
     await seeder.updateOrderUserIds(emailToFixtureId);
     
     // Verify the update worked by checking orders for accountOrders user
@@ -424,6 +429,13 @@ async function globalSetup(config: FullConfig): Promise<void> {
     if (accountOrdersUserId) {
       const orderCount = await seeder.countOrdersByUserId(accountOrdersUserId);
       console.log(`[Verification] Orders for accountOrders user (${accountOrdersUserId}): ${orderCount}`);
+    }
+    
+    // Verify the update worked by checking orders for accountCoa user
+    const accountCoaUserId = await seeder.getUserIdByEmail('account-coa@test.zenithbioscience.com');
+    if (accountCoaUserId) {
+      const coaOrderCount = await seeder.countOrdersByUserId(accountCoaUserId);
+      console.log(`[Verification] Orders for accountCoa user (${accountCoaUserId}): ${coaOrderCount}`);
     }
 
     // CRITICAL: Clear backend cache after seeding data

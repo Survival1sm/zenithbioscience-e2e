@@ -204,8 +204,8 @@ test.describe('Account Credits Page', () => {
       // Click the refresh button
       await refreshButton.click();
       
-      // Wait for any loading to complete
-      await creditsPage.page.waitForTimeout(1000);
+      // Wait for any loading to complete - use network idle instead of fixed timeout
+      await creditsPage.page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
       
       // Verify we're still on the credits page
       await expect(creditsPage.page).toHaveURL(/\/account\/credits/);

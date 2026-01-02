@@ -83,10 +83,11 @@ test.describe('Product Catalog', () => {
       return;
     }
     
-    // Click the first product
-    await shopPage.clickProductByIndex(0);
+    // Click the first product and wait for URL change
+    const productCard = shopPage.productCards.nth(0);
+    await productCard.click();
     
     // Verify navigation to a product detail page
-    await expect(shopPage.page).toHaveURL(/\/shop\/.+/);
+    await expect(shopPage.page).toHaveURL(/\/shop\/.+/, { timeout: 10000 });
   });
 });

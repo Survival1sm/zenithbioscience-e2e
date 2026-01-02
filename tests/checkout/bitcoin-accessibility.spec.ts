@@ -120,8 +120,8 @@ test.describe('Bitcoin Accessibility', () => {
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait a moment for any cart sync to complete
-    await page.waitForTimeout(500);
+    // Wait a moment for any cart sync to complete - use network idle instead of fixed timeout
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Add a product to cart
     await productDetailPage.gotoProduct(product.slug);
@@ -129,7 +129,10 @@ test.describe('Bitcoin Accessibility', () => {
     await productDetailPage.addToCart();
 
     // Wait for add to cart to complete and cart sync to backend
-    await page.waitForTimeout(2000);
+    await Promise.race([
+      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
+      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
+    ]);
 
     // Wait for any pending network requests to complete
     await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
@@ -147,19 +150,29 @@ test.describe('Bitcoin Accessibility', () => {
     await checkoutPage.proceedToPayment();
 
     // Wait for payment step to load and order summary to show non-zero total
-    await page.waitForTimeout(2000);
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Wait for order summary total to be non-zero (up to 15 seconds)
-    for (let i = 0; i < 15; i++) {
-      const totalRow = page.locator('li').filter({ hasText: /^Total/ });
-      const totalHeading = totalRow.locator('h6');
-      const totalText = await totalHeading.textContent().catch(() => null);
-      const total = parseFloat(totalText?.replace(/[^0-9.]/g, '') || '0');
-      if (total > 0) {
-        await page.waitForTimeout(500);
-        break;
-      }
-      await page.waitForTimeout(1000);
+    try {
+      await page.waitForFunction(
+        () => {
+          const rows = document.querySelectorAll('li');
+          for (const row of rows) {
+            if (row.textContent?.startsWith('Total')) {
+              const h6 = row.querySelector('h6');
+              if (h6) {
+                const text = h6.textContent || '';
+                const total = parseFloat(text.replace(/[^0-9.]/g, '') || '0');
+                if (total > 0) return true;
+              }
+            }
+          }
+          return false;
+        },
+        { timeout: 15000 }
+      );
+    } catch {
+      // Continue even if total doesn't appear - let the test handle the failure
     }
 
     return await checkoutPage.arePaymentMethodsAvailable();
@@ -240,12 +253,14 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Select Bitcoin payment
     await bitcoinPage.selectBitcoinPayment();
-    await page.waitForTimeout(1000);
+    // Wait for Bitcoin selection to complete
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Click Continue to Review button
     const continueButton = page.getByRole('button', { name: /continue to review/i });
     await continueButton.click();
-    await page.waitForTimeout(1000);
+    // Wait for review step to load
+    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
 
     // Check the RUO consent checkbox
     const ruoCheckbox = page.getByRole('checkbox');
@@ -546,7 +561,8 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Toggle help section
     await helpButton.click();
-    await page.waitForTimeout(300);
+    // Wait for help section animation to complete
+    await page.waitForSelector('[data-testid="bitcoin-help-section"]', { state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Verify aria-expanded is updated
     const newAriaExpanded = await helpButton.getAttribute('aria-expanded');
@@ -577,7 +593,8 @@ test.describe('Bitcoin Accessibility', () => {
 
     for (const element of interactiveElements) {
       await page.keyboard.press('Tab');
-      await page.waitForTimeout(100);
+      // Wait for focus to settle
+      await page.waitForFunction(() => document.activeElement !== null, { timeout: 1000 }).catch(() => {});
 
       // Verify element is focusable
       const isFocusable = await element
@@ -628,7 +645,8 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Press Enter to activate
     await page.keyboard.press('Enter');
-    await page.waitForTimeout(300);
+    // Wait for help section animation to complete
+    await page.waitForSelector('[data-testid="bitcoin-help-section"]', { state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Verify help section is now visible
     const isHelpVisible = await bitcoinPage.isHelpSectionVisible();

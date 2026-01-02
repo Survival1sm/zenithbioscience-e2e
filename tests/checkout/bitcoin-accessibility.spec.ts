@@ -120,22 +120,19 @@ test.describe('Bitcoin Accessibility', () => {
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait a moment for any cart sync to complete - use network idle instead of fixed timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for page to be ready (body visible)
+    await page.locator('body').waitFor({ state: 'visible', timeout: 5000 });
 
     // Add a product to cart
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete and cart sync to backend
-    await Promise.race([
-      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
-      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
-    ]);
+    // Wait for add to cart to complete
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {});
 
-    // Wait for any pending network requests to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    // Wait for snackbar to disappear (indicates cart sync complete)
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'hidden', timeout: 10000 }).catch(() => {});
   }
 
   /**
@@ -149,33 +146,16 @@ test.describe('Bitcoin Accessibility', () => {
     await checkoutPage.fillShippingAddress(shippingAddress);
     await checkoutPage.proceedToPayment();
 
-    // Wait for payment step to load and order summary to show non-zero total
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for payment step to load
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for order summary total to be non-zero (up to 15 seconds)
+    // Wait for payment methods to load (with proper timeout for Firefox)
     try {
-      await page.waitForFunction(
-        () => {
-          const rows = document.querySelectorAll('li');
-          for (const row of rows) {
-            if (row.textContent?.startsWith('Total')) {
-              const h6 = row.querySelector('h6');
-              if (h6) {
-                const text = h6.textContent || '';
-                const total = parseFloat(text.replace(/[^0-9.]/g, '') || '0');
-                if (total > 0) return true;
-              }
-            }
-          }
-          return false;
-        },
-        { timeout: 15000 }
-      );
+      await checkoutPage.waitForPaymentMethods(20000);
+      return true;
     } catch {
-      // Continue even if total doesn't appear - let the test handle the failure
+      return false;
     }
-
-    return await checkoutPage.arePaymentMethodsAvailable();
   }
 
   /**
@@ -253,23 +233,25 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Select Bitcoin payment
     await bitcoinPage.selectBitcoinPayment();
-    // Wait for Bitcoin selection to complete
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for Bitcoin selection UI to update
+    await bitcoinPage.bitcoinPaySelector.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Click Continue to Review button
     const continueButton = page.getByRole('button', { name: /continue to review/i });
     await continueButton.click();
-    // Wait for review step to load
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    
+    // Wait for review step to load - wait for Complete Order button to appear
+    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
+    await completeOrderButton.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Check the RUO consent checkbox
+    // Check the RUO consent checkbox - must succeed for order to complete
     const ruoCheckbox = page.getByRole('checkbox');
-    if (await ruoCheckbox.isVisible()) {
+    await ruoCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+    if (!await ruoCheckbox.isChecked()) {
       await ruoCheckbox.check();
     }
 
     // Click Complete Order button
-    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
     await completeOrderButton.click();
 
     // Wait for navigation to success page
@@ -561,7 +543,7 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Toggle help section
     await helpButton.click();
-    // Wait for help section animation to complete
+    // Wait for help section to be visible
     await page.waitForSelector('[data-testid="bitcoin-help-section"]', { state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Verify aria-expanded is updated
@@ -645,7 +627,7 @@ test.describe('Bitcoin Accessibility', () => {
 
     // Press Enter to activate
     await page.keyboard.press('Enter');
-    // Wait for help section animation to complete
+    // Wait for help section to be visible
     await page.waitForSelector('[data-testid="bitcoin-help-section"]', { state: 'visible', timeout: 3000 }).catch(() => {});
 
     // Verify help section is now visible

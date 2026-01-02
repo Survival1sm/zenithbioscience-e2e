@@ -177,11 +177,12 @@ export class AdminOrdersPage extends BasePage {
         state: 'visible', 
         timeout: 15000 
       }).catch(() => {});
-      // Give cards time to fully render
-      await this.wait(1000);
     } else {
-      // Desktop view - wait for data grid rows
-      await this.wait(500);
+      // Desktop view - wait for data grid rows or empty state
+      await this.page.waitForSelector('.MuiDataGrid-row, .MuiDataGrid-overlay', {
+        state: 'visible',
+        timeout: 15000
+      }).catch(() => {});
     }
   }
 
@@ -190,7 +191,8 @@ export class AdminOrdersPage extends BasePage {
    */
   async switchToAllOrdersTab(): Promise<void> {
     await this.allOrdersTab.click();
-    await this.wait(500);
+    // Wait for tab content to update
+    await expect(this.allOrdersTab).toHaveAttribute('aria-selected', 'true');
   }
 
   /**
@@ -198,7 +200,8 @@ export class AdminOrdersPage extends BasePage {
    */
   async switchToManualPaymentsTab(): Promise<void> {
     await this.manualPaymentsTab.click();
-    await this.wait(500);
+    // Wait for tab content to update
+    await expect(this.manualPaymentsTab).toHaveAttribute('aria-selected', 'true');
   }
 
 
@@ -302,7 +305,8 @@ export class AdminOrdersPage extends BasePage {
     const firstPageButton = this.page.locator('[aria-label="Go to first page"], .MuiTablePagination-actions button:first-child');
     if (await firstPageButton.isVisible().catch(() => false) && await firstPageButton.isEnabled().catch(() => false)) {
       await firstPageButton.click();
-      await this.wait(300);
+      // Wait for page content to update
+      await this.loadingState.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
 
     // Try to increase page size to show all orders
@@ -325,7 +329,8 @@ export class AdminOrdersPage extends BasePage {
         await this.page.keyboard.press('Escape');
       }
       
-      await this.wait(500);
+      // Wait for content to update after page size change
+      await this.loadingState.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
     }
 
     // Now search for the order on current page
@@ -340,7 +345,8 @@ export class AdminOrdersPage extends BasePage {
     
     while (maxPages > 0 && await nextPageButton.isEnabled().catch(() => false)) {
       await nextPageButton.click();
-      await this.wait(300);
+      // Wait for page content to update
+      await this.loadingState.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
       
       orders = await this.getOrders();
       found = orders.find(o => o.orderNumber.endsWith(orderNumber));
@@ -375,7 +381,6 @@ export class AdminOrdersPage extends BasePage {
         if (cardOrderNumber.includes(orderNumber)) {
           // Scroll card into view first for mobile
           await card.scrollIntoViewIfNeeded();
-          await this.wait(200);
           // Click the View button in the card actions
           const viewButton = card.getByRole('button', { name: /view/i });
           await viewButton.scrollIntoViewIfNeeded();
@@ -389,10 +394,10 @@ export class AdminOrdersPage extends BasePage {
       await row.locator('button[aria-label*="View order"]').click();
     }
 
-    // Wait for dialog to open - longer timeout for mobile
+    // Wait for dialog to open
     await this.orderDialog.waitFor({ state: 'visible', timeout: 10000 });
-    // Wait for dialog content to be ready
-    await this.wait(isMobile ? 500 : 200);
+    // Wait for dialog content to be ready (status select should be visible)
+    await this.orderDialog.locator('.MuiSelect-select').waitFor({ state: 'visible', timeout: 5000 });
   }
 
   /**
@@ -477,10 +482,9 @@ export class AdminOrdersPage extends BasePage {
     // Click the status select to open dropdown - scroll into view first on mobile
     const selectElement = this.orderDialog.locator('.MuiSelect-select').filter({ hasText: /.+/ });
     await selectElement.scrollIntoViewIfNeeded();
-    await this.wait(100);
     await selectElement.click();
 
-    // Wait for dropdown menu to appear - longer timeout for mobile
+    // Wait for dropdown menu to appear
     const menu = this.page.locator('.MuiMenu-paper');
     await menu.waitFor({ state: 'visible', timeout: 5000 });
 
@@ -499,10 +503,9 @@ export class AdminOrdersPage extends BasePage {
   async clickUpdateOrder(): Promise<void> {
     // Scroll update button into view on mobile
     await this.updateOrderButton.scrollIntoViewIfNeeded();
-    await this.wait(100);
     await this.updateOrderButton.click();
     
-    // Wait for either dialog to close OR error snackbar to appear - longer timeout for mobile
+    // Wait for either dialog to close OR error snackbar to appear
     const dialogHidden = this.orderDialog.waitFor({ state: 'hidden', timeout: 15000 });
     const errorAppeared = this.errorSnackbar.waitFor({ state: 'visible', timeout: 15000 });
     

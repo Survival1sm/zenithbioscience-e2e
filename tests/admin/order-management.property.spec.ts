@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { LoginPage } from '../../page-objects/LoginPage';
-import { AdminOrdersPage, OrderStatus } from '../../page-objects/admin';
+import { AdminOrdersPage } from '../../page-objects/admin';
 import { defaultFixtures } from '../../fixtures/defaultFixtures';
 
 /**
@@ -72,8 +72,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('PROCESSING');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update to complete
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Property: Status should be updated in the list
       const updatedOrder = await adminOrdersPage.findOrder(confirmedOrder!.orderNumber);
@@ -94,7 +94,7 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.viewOrder(pendingOrder!.orderNumber);
       await adminOrdersPage.updateOrderStatus('CONFIRMED');
       await adminOrdersPage.clickUpdateOrder();
-      await adminOrdersPage.wait(1000);
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Verify first transition
       let updatedOrder = await adminOrdersPage.findOrder(pendingOrder!.orderNumber);
@@ -104,7 +104,7 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.viewOrder(pendingOrder!.orderNumber);
       await adminOrdersPage.updateOrderStatus('PROCESSING');
       await adminOrdersPage.clickUpdateOrder();
-      await adminOrdersPage.wait(1000);
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Verify second transition
       updatedOrder = await adminOrdersPage.findOrder(pendingOrder!.orderNumber);
@@ -130,15 +130,12 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('SHIPPED');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update to complete
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Reload the page
       await page.reload();
       await adminOrdersPage.waitForPage();
-      
-      // Wait a bit more for the data to load
-      await adminOrdersPage.wait(500);
 
       // Property: Status should persist after reload
       const reloadedOrder = await adminOrdersPage.findOrder(orderNumber);
@@ -162,8 +159,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('CANCELLED');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update to complete
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Navigate away to admin dashboard
       await page.goto('http://localhost:3000/admin');
@@ -198,8 +195,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('CONFIRMED');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update to complete
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Property: Order details should remain intact
       const updatedOrder = await adminOrdersPage.findOrder(originalOrderNumber);
@@ -226,8 +223,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('PROCESSING');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update to complete
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Property: Order count should remain the same (status change doesn't delete orders)
       const finalCount = await adminOrdersPage.getOrderCount();
@@ -250,8 +247,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('CONFIRMED');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Property: Status should be successfully set
       const updatedOrder = await adminOrdersPage.findOrder(pendingOrder!.orderNumber);
@@ -272,8 +269,8 @@ test.describe('Property: Admin Order Management Persistence', () => {
       await adminOrdersPage.updateOrderStatus('CANCELLED');
       await adminOrdersPage.clickUpdateOrder();
 
-      // Wait for update
-      await adminOrdersPage.wait(1000);
+      // Wait for success message to confirm update completed
+      await adminOrdersPage.assertSuccessMessageDisplayed();
 
       // Property: Order should be cancelled
       const updatedOrder = await adminOrdersPage.findOrder(cancellableOrder!.orderNumber);

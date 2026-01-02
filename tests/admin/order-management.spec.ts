@@ -271,9 +271,6 @@ test.describe('Admin Order Management', () => {
       // Wait for success message
       await adminOrdersPage.assertSuccessMessageDisplayed();
 
-      // Wait for list to refresh
-      await adminOrdersPage.wait(1000);
-
       // Verify the status is updated in the list
       await adminOrdersPage.assertOrderStatus(processingOrder!.orderNumber, 'SHIPPED');
     });
@@ -298,9 +295,6 @@ test.describe('Admin Order Management', () => {
 
       // Verify success
       await adminOrdersPage.assertSuccessMessageDisplayed();
-
-      // Wait for list to refresh
-      await adminOrdersPage.wait(1000);
 
       // Verify status in list
       await adminOrdersPage.assertOrderStatus(awaitingPaymentOrder!.orderNumber, 'CANCELLED');

@@ -123,22 +123,19 @@ test.describe('Bitcoin WebSocket Integration', () => {
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
 
-    // Wait a moment for any cart sync to complete - use network idle instead of fixed timeout
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for page to be ready (body visible)
+    await page.locator('body').waitFor({ state: 'visible', timeout: 5000 });
 
     // Add a product to cart
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
 
-    // Wait for add to cart to complete and cart sync to backend
-    await Promise.race([
-      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
-      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
-    ]);
+    // Wait for add to cart to complete
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {});
 
-    // Wait for any pending network requests to complete
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    // Wait for snackbar to disappear (indicates cart sync complete)
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'hidden', timeout: 10000 }).catch(() => {});
   }
 
   /**
@@ -152,33 +149,16 @@ test.describe('Bitcoin WebSocket Integration', () => {
     await checkoutPage.fillShippingAddress(shippingAddress);
     await checkoutPage.proceedToPayment();
 
-    // Wait for payment step to load and order summary to show non-zero total
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for payment step to load
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for order summary total to be non-zero (up to 15 seconds)
+    // Wait for payment methods to load (with proper timeout for Firefox)
     try {
-      await page.waitForFunction(
-        () => {
-          const rows = document.querySelectorAll('li');
-          for (const row of rows) {
-            if (row.textContent?.startsWith('Total')) {
-              const h6 = row.querySelector('h6');
-              if (h6) {
-                const text = h6.textContent || '';
-                const total = parseFloat(text.replace(/[^0-9.]/g, '') || '0');
-                if (total > 0) return true;
-              }
-            }
-          }
-          return false;
-        },
-        { timeout: 15000 }
-      );
+      await checkoutPage.waitForPaymentMethods(20000);
+      return true;
     } catch {
-      // Continue even if total doesn't appear - let the test handle the failure
+      return false;
     }
-
-    return await checkoutPage.arePaymentMethodsAvailable();
   }
 
   /**
@@ -218,24 +198,29 @@ test.describe('Bitcoin WebSocket Integration', () => {
     const continueToReviewButton = page.getByRole('button', { name: /continue to review/i });
     await continueToReviewButton.waitFor({ state: 'visible', timeout: 10000 });
     await continueToReviewButton.click();
-    // Wait for review step to load
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    
+    // Wait for review step to load - wait for Complete Order button to appear
+    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
+    await completeOrderButton.waitFor({ state: 'visible', timeout: 15000 });
 
     // Accept RUO consent checkbox
     await checkoutPage.acceptRuoConsent();
-    // Wait for checkbox state to update
-    await page.waitForLoadState('networkidle', { timeout: 3000 }).catch(() => {});
+    // Wait for checkbox to be checked - must succeed for order to complete
+    const ruoCheckbox = page.getByRole('checkbox');
+    await ruoCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+    if (!await ruoCheckbox.isChecked()) {
+      await ruoCheckbox.check();
+    }
+    await expect(ruoCheckbox).toBeChecked({ timeout: 5000 });
 
     // Click "Complete Order" button
-    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
-    await completeOrderButton.waitFor({ state: 'visible', timeout: 10000 });
     await completeOrderButton.click();
 
     // Wait for redirect to order success page
     await page.waitForURL(/\/checkout\/success/, { timeout: 30000 });
     await page.waitForLoadState('domcontentloaded');
-    // Wait for success page to fully load
-    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {});
+    // Wait for success page content to be visible
+    await page.locator('body').waitFor({ state: 'visible', timeout: 5000 });
 
     // Wait for invoice generation on the order success page
     try {
@@ -268,7 +253,7 @@ test.describe('Bitcoin WebSocket Integration', () => {
     }
 
     // Wait for potential WebSocket connection to be established
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded');
 
     // The page should be ready for real-time updates
     // WebSocket connection may or may not be established depending on backend config
@@ -410,11 +395,11 @@ test.describe('Bitcoin WebSocket Integration', () => {
 
     // Simulate brief offline period
     await context.setOffline(true);
-    // Brief wait to simulate network interruption - intentional fixed wait
+    // Wait for offline state to take effect
     await page.waitForLoadState('domcontentloaded').catch(() => {});
     await context.setOffline(false);
     // Wait for network recovery
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded');
 
     // Refresh button should still work
     await expect(bitcoinPage.refreshInvoiceButton).toBeVisible();

@@ -539,11 +539,20 @@ test.describe('Checkout Cart Summary Consistency (Property Tests)', () => {
     await setupCartWithProducts(page, request);
     const product = getTestProduct(0);
 
-    // Try to update quantity in cart - this may fail on some viewports
-    // Use a shorter timeout to avoid test timeout
+    // Try to update quantity in cart using the CartPage method which handles mobile/desktop
     try {
-      // First check if the quantity input is visible
-      const quantityInput = page.locator('[data-testid="desktop-cart-items"]').locator('tbody tr').filter({ hasText: product.name }).getByRole('spinbutton');
+      // Check if quantity input is visible (works for both mobile and desktop)
+      const isMobile = await cartPage.isMobileView();
+      let quantityInput: import('@playwright/test').Locator;
+      
+      if (isMobile) {
+        const itemCard = cartPage.getMobileCartItemByName(product.name);
+        quantityInput = itemCard.getByRole('spinbutton');
+      } else {
+        const itemRow = cartPage.getCartItemByName(product.name);
+        quantityInput = cartPage.getQuantityInput(itemRow);
+      }
+      
       const isVisible = await quantityInput.isVisible({ timeout: 5000 }).catch(() => false);
       
       if (!isVisible) {

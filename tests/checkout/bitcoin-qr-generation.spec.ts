@@ -96,17 +96,16 @@ test.describe('Bitcoin QR Code Generation', () => {
     });
     await page.reload();
     await page.waitForLoadState('domcontentloaded');
-    // Wait for cart sync to complete
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for page to be ready
+    await page.locator('body').waitFor({ state: 'visible', timeout: 5000 });
 
     await productDetailPage.gotoProduct(product.slug);
     await productDetailPage.productName.waitFor({ state: 'visible', timeout: 10000 });
     await productDetailPage.addToCart();
-    // Wait for cart update - either snackbar notification or network idle
-    await Promise.race([
-      page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {}),
-      page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {}),
-    ]);
+    // Wait for add to cart to complete
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'visible', timeout: 5000 }).catch(() => {});
+    // Wait for snackbar to disappear (indicates cart sync complete)
+    await page.waitForSelector('.MuiSnackbar-root', { state: 'hidden', timeout: 10000 }).catch(() => {});
   }
 
   /**
@@ -119,30 +118,10 @@ test.describe('Bitcoin QR Code Generation', () => {
     await checkoutPage.fillShippingAddress(shippingAddress);
     await checkoutPage.proceedToPayment();
     // Wait for payment step to load
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    await page.waitForLoadState('domcontentloaded');
 
-    // Wait for order summary total to be non-zero (up to 15 seconds)
-    try {
-      await page.waitForFunction(
-        () => {
-          const rows = document.querySelectorAll('li');
-          for (const row of rows) {
-            if (row.textContent?.startsWith('Total')) {
-              const h6 = row.querySelector('h6');
-              if (h6) {
-                const text = h6.textContent || '';
-                const total = parseFloat(text.replace(/[^0-9.]/g, '') || '0');
-                if (total > 0) return true;
-              }
-            }
-          }
-          return false;
-        },
-        { timeout: 15000 }
-      );
-    } catch {
-      // Continue even if total doesn't appear - let the test handle the failure
-    }
+    // Wait for payment methods to load (with proper timeout for all browsers)
+    await checkoutPage.waitForPaymentMethods(20000);
   }
 
   /**
@@ -174,23 +153,25 @@ test.describe('Bitcoin QR Code Generation', () => {
 
     // Select Bitcoin payment
     await bitcoinPage.selectBitcoinPayment();
-    // Wait for Bitcoin selection to complete
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    // Wait for Bitcoin selection UI to update
+    await bitcoinPage.bitcoinPaySelector.waitFor({ state: 'visible', timeout: 5000 }).catch(() => {});
 
     // Click Continue to Review button
     const continueButton = page.getByRole('button', { name: /continue to review/i });
     await continueButton.click();
-    // Wait for review step to load
-    await page.waitForLoadState('networkidle', { timeout: 5000 }).catch(() => {});
+    
+    // Wait for review step to load - wait for Complete Order button to appear
+    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
+    await completeOrderButton.waitFor({ state: 'visible', timeout: 15000 });
 
-    // Check the RUO consent checkbox
+    // Check the RUO consent checkbox - must succeed for order to complete
     const ruoCheckbox = page.getByRole('checkbox');
-    if (await ruoCheckbox.isVisible()) {
+    await ruoCheckbox.waitFor({ state: 'visible', timeout: 5000 });
+    if (!await ruoCheckbox.isChecked()) {
       await ruoCheckbox.check();
     }
 
     // Click Complete Order button
-    const completeOrderButton = page.getByRole('button', { name: /complete order/i });
     await completeOrderButton.click();
 
     // Wait for navigation to success page
@@ -253,7 +234,7 @@ test.describe('Bitcoin QR Code Generation', () => {
   });
 
   test('should display Bitcoin address for manual copy', async ({ page, request }) => {
-    const orderId = await completeBitcoinCheckout(page, request);
+    await completeBitcoinCheckout(page, request);
 
     try {
       await bitcoinPage.waitForInvoiceGeneration(30000);
@@ -262,12 +243,22 @@ test.describe('Bitcoin QR Code Generation', () => {
     }
 
     await expect(page.getByText(/bitcoin address/i)).toBeVisible();
-    // Match both mainnet (bc1, 1, 3) and testnet (tb1) addresses
-    const addressElement = page.locator('.MuiTypography-root').filter({
+    
+    // On mobile, the address is truncated (e.g., "tb1qextg...fjqneen4")
+    // On desktop, the full address is shown (e.g., "tb1q..." with 25+ chars)
+    // Match both formats: full address OR truncated with ellipsis
+    const fullAddressElement = page.locator('.MuiTypography-root').filter({
       hasText: /^(bc1|tb1|[13])[a-zA-Z0-9]{25,}/i,
     });
-    const addressCount = await addressElement.count();
-    expect(addressCount).toBeGreaterThan(0);
+    const truncatedAddressElement = page.locator('.MuiTypography-root').filter({
+      hasText: /^(bc1|tb1|[13])[a-zA-Z0-9]+\.\.\.[a-zA-Z0-9]+$/i,
+    });
+    
+    const fullAddressCount = await fullAddressElement.count();
+    const truncatedAddressCount = await truncatedAddressElement.count();
+    
+    // Either full or truncated address should be visible
+    expect(fullAddressCount + truncatedAddressCount).toBeGreaterThan(0);
   });
 
   test('should copy Bitcoin address to clipboard when Copy Address is clicked', async ({ page, request, context }) => {

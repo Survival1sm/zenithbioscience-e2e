@@ -360,28 +360,46 @@ test.describe('Admin Product Management', () => {
     /**
      * Test: Product name is required
      * Verifies that product name field is required
+     * 
+     * Note: On mobile, the form is split into tabs. We need to navigate
+     * to the correct tab before filling each field.
      */
     test('should require product name', async () => {
       // Open create dialog
       await adminProductsPage.openCreateDialog();
 
-      // Fill all fields except name
+      // Check if we're on mobile (form has tabs)
+      const isMobile = await adminProductsPage.isMobileView();
+
+      // Fill all fields except name (Tab 0 - Basic Info)
       await adminProductsPage.descriptionInput.fill('Test description');
       await adminProductsPage.doseInput.fill('5mg');
-      await adminProductsPage.priceInput.fill('29.99');
 
-      // Select category
+      // Select category (also on Tab 0)
       await adminProductsPage.categorySelect.click();
       const categoryMenu = adminProductsPage.page.locator('.MuiMenu-paper');
       await categoryMenu.waitFor({ state: 'visible' });
       await categoryMenu.getByRole('option', { name: /peptide/i }).click();
       await categoryMenu.waitFor({ state: 'hidden' });
 
+      // Switch to Pricing tab on mobile before filling price
+      if (isMobile) {
+        const pricingTab = adminProductsPage.productDialog.getByRole('tab', { name: /pricing/i });
+        await pricingTab.click();
+        await adminProductsPage.wait(300);
+      }
+
+      // Fill price (Tab 1 - Pricing on mobile)
+      await adminProductsPage.priceInput.scrollIntoViewIfNeeded();
+      await adminProductsPage.priceInput.fill('29.99');
+
       // Try to submit
+      await adminProductsPage.submitButton.scrollIntoViewIfNeeded();
       await adminProductsPage.submitButton.click();
 
-      // Wait a moment for validation
-      await adminProductsPage.wait(1000);
+      // Wait for validation feedback - dialog should remain open
+      // Use element-based wait instead of fixed timeout
+      await adminProductsPage.productDialog.waitFor({ state: 'visible', timeout: 5000 });
 
       // Dialog should still be open due to validation
       await adminProductsPage.assertDialogOpen();
